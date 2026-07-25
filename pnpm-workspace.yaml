@@ -1,0 +1,27 @@
+# pnpm settings. (pnpm v11 reads these here, no longer from package.json.)
+
+# Native packages permitted to run install scripts.
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - postcss@8.5.23
+  - "@hookform/resolvers@5.4.2"
+  - react-hook-form@7.83.0
+
+# Force patched versions of transitive dependencies that upstream packages still
+# pin to vulnerable ranges. Keep in sync with the npm `overrides` field in
+# package.json so either package manager stays safe.
+#
+# brace-expansion is pinned PER MAJOR on purpose. The advisory names 5.0.8 as
+# the patched version, but forcing v5 globally breaks minimatch v3 — which
+# ESLint depends on — with "expand is not a function" (verified, not assumed).
+# The pins below are the patched maintenance releases of each line. The package
+# is dev-only: `pnpm why brace-expansion --prod` returns nothing, so it never
+# reaches production.
+overrides:
+  sharp: ^0.35.3
+  postcss: ^8.5.23
+  brace-expansion@1: ^1.1.16
+  brace-expansion@2: ^2.1.2

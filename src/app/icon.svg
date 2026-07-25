@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!--
+    Chayar Asroy favicon — the tree mark (three tiered paper-cut canopies on a
+    forest trunk), tuned to fill the frame so it stays legible at 16px. Literal
+    brand colors: a favicon renders standalone, so design tokens don't apply.
+  -->
+  <path d="M16.6 30c0-4-3.2-5.4-2.8-8.6.4-3.2 3.6-3.8 3.3-7-.3-2.9-1-4.3-.6-7"
+        stroke="#2e7d43" stroke-width="3" stroke-linecap="round"/>
+  <!-- top tier -->
+  <ellipse cx="16.4" cy="9.3" rx="11" ry="3.2" fill="#241c12" opacity=".5"/>
+  <ellipse cx="16" cy="8.1" rx="11" ry="3.2" fill="#eea81e"/>
+  <!-- middle tier -->
+  <ellipse cx="10.9" cy="17.6" rx="7" ry="2.3" fill="#241c12" opacity=".5"/>
+  <ellipse cx="10.4" cy="16.4" rx="7" ry="2.3" fill="#e4801c"/>
+  <!-- bottom tier -->
+  <ellipse cx="14.2" cy="24" rx="8.6" ry="2.7" fill="#241c12" opacity=".5"/>
+  <ellipse cx="13.7" cy="22.8" rx="8.6" ry="2.7" fill="#eea81e"/>
+</svg>

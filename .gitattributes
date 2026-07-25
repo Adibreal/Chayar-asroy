@@ -1,0 +1,15 @@
+# Enforce consistent LF line endings across all platforms so the repo matches
+# .editorconfig / Prettier and never churns on Windows checkouts.
+* text=auto eol=lf
+
+# Treat common binary assets as binary (never normalize / diff as text).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.svg text
+*.woff binary
+*.woff2 binary

@@ -1,0 +1,448 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (readiness). Toggle by adding `.dark` to <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ================================================================== *
+ *  CHAYAR ASROY — DESIGN TOKENS
+ * ------------------------------------------------------------------ *
+ *  Palette derived from the official logo + campaign brand system:
+ *  cobalt blue · marigold · forest green · orange/terracotta · cream.
+ *
+ *  Token layers (single source of truth):
+ *    1. Primitives    — raw brand values (--cobalt-500, --paper-200…)
+ *    2. Semantic      — role-based aliases (--background, --primary…)
+ *    3. Theme mapping — exposes semantics to Tailwind utilities
+ *
+ *  Components must consume SEMANTIC tokens (bg-background, text-primary),
+ *  never primitives or hardcoded hex — so a theme change (e.g. dark mode)
+ *  only touches the semantic layer, never the components.
+ * ================================================================== */
+
+/* ------------------------------------------------------------------ *
+ *  1. PRIMITIVES + 2. SEMANTIC ALIASES (light theme)
+ * ------------------------------------------------------------------ */
+:root {
+  /* --- Paper / warm neutrals ------------------------------------- */
+  --paper-50: #fefcf6;
+  --paper-100: #fbf5e9;
+  --paper-200: #f6eedd; /* base page background */
+  --paper-300: #efe3cc; /* sunken / sand surfaces */
+  --paper-400: #e3d3b4;
+
+  /* --- Ink / warm near-black text -------------------------------- */
+  --ink-400: #8a7d69;
+  --ink-500: #6b5f4e;
+  --ink-700: #3d3324;
+  --ink-900: #241c12;
+
+  /* --- Cobalt (primary / trust anchor) --------------------------- */
+  --cobalt-100: #dcdef5;
+  --cobalt-300: #7a83d1;
+  --cobalt-500: #2b33a4;
+  --cobalt-600: #232a8a;
+  --cobalt-700: #1b2170;
+
+  /* --- Marigold (energy / highlight — FILLS ONLY) ---------------- */
+  --marigold-100: #fbecc7;
+  --marigold-400: #f2b63f;
+  --marigold-500: #eea81e;
+  --marigold-600: #d1900d;
+
+  /* --- Forest (growth / secondary) ------------------------------- */
+  --forest-100: #d4e6d8;
+  --forest-500: #2e7d43;
+  --forest-600: #256536;
+  --forest-700: #1c4d29;
+
+  /* --- Orange / terracotta (warmth accent) ----------------------- */
+  --orange-100: #fbe0c6;
+  --orange-500: #e4801c;
+  --orange-600: #c56813;
+
+  /* --- Feedback --------------------------------------------------- */
+  --success-500: #2e7d43;
+  --warning-500: #d1900d;
+  --danger-500: #c0392b;
+  --danger-600: #a12e22;
+
+  /* --- Semantic surfaces + text ---------------------------------- */
+  --background: var(--paper-200);
+  --foreground: var(--ink-900);
+
+  --surface: var(--paper-100);
+  --surface-raised: var(--paper-50);
+  --surface-sunken: var(--paper-300);
+  --surface-hover: var(--paper-300);
+
+  --card: var(--paper-50);
+  --card-foreground: var(--ink-900);
+
+  --overlay: color-mix(in srgb, var(--ink-900) 55%, transparent);
+
+  /* --- Semantic brand roles + interaction states ----------------- */
+  --primary: var(--cobalt-500);
+  --primary-foreground: #ffffff;
+  --primary-hover: var(--cobalt-600);
+  --primary-active: var(--cobalt-700);
+
+  --secondary: var(--forest-500);
+  --secondary-foreground: #ffffff;
+  --secondary-hover: var(--forest-600);
+  --secondary-active: var(--forest-700);
+
+  --accent: var(--marigold-500);
+  --accent-foreground: var(--ink-900);
+  --accent-hover: var(--marigold-600);
+
+  --highlight: var(--orange-500);
+  --highlight-foreground: #ffffff;
+  --highlight-hover: var(--orange-600);
+
+  --muted: var(--paper-300);
+  --muted-foreground: var(--ink-500);
+
+  /* Soft, translucent tints — auto-adapt to theme via var(--primary) */
+  --primary-soft: color-mix(in srgb, var(--primary) 12%, transparent);
+  --primary-soft-hover: color-mix(in srgb, var(--primary) 20%, transparent);
+  --danger-soft: color-mix(in srgb, var(--danger-500) 12%, transparent);
+
+  --border: color-mix(in srgb, var(--ink-900) 12%, transparent);
+  --border-strong: color-mix(in srgb, var(--ink-900) 22%, transparent);
+  --input: color-mix(in srgb, var(--ink-900) 20%, transparent);
+  --ring: var(--cobalt-500);
+
+  /* --- Opacity tokens -------------------------------------------- */
+  --opacity-disabled: 0.55;
+  --opacity-muted: 0.72;
+
+  /* --- Z-index scale --------------------------------------------- *
+   * Consume via arbitrary utilities, e.g. `z-[var(--z-header)]`.     */
+  --z-hide: -1;
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-header: 200;
+  --z-dropdown: 300;
+  --z-overlay: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-toast: 700;
+  --z-tooltip: 800;
+
+  /* --- Motion durations (mirror src/lib/motion/tokens.ts) -------- */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+
+  color-scheme: light;
+}
+
+/* ------------------------------------------------------------------ *
+ *  DARK THEME (readiness — not yet toggled anywhere)
+ *  Only the semantic layer is overridden; components never change.
+ * ------------------------------------------------------------------ */
+.dark {
+  --background: #17140f;
+  --foreground: #f3ead6;
+
+  --surface: #201b14;
+  --surface-raised: #2a231a;
+  --surface-sunken: #120f0b;
+  --surface-hover: #2a231a;
+
+  --card: #201b14;
+  --card-foreground: #f3ead6;
+
+  --overlay: color-mix(in srgb, #000000 62%, transparent);
+
+  --primary: #8f97e0;
+  --primary-foreground: #14110c;
+  --primary-hover: #a3aae8;
+  --primary-active: #b6bcee;
+
+  --secondary: #6fbf86;
+  --secondary-foreground: #12100b;
+  --secondary-hover: #83c996;
+  --secondary-active: #97d3a7;
+
+  --accent: #f2b63f;
+  --accent-foreground: #1b160f;
+  --accent-hover: #f5c463;
+
+  --highlight: #f0954a;
+  --highlight-foreground: #1b160f;
+  --highlight-hover: #f3a566;
+
+  --muted: #2a231a;
+  --muted-foreground: #b8ab93;
+
+  --border: color-mix(in srgb, #f3ead6 14%, transparent);
+  --border-strong: color-mix(in srgb, #f3ead6 26%, transparent);
+  --input: color-mix(in srgb, #f3ead6 24%, transparent);
+  --ring: #8f97e0;
+
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ *
+ *  3a. THEME MAPPING — semantic colors + fonts (inline = runtime-var)
+ * ------------------------------------------------------------------ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-overlay: var(--overlay);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-hover: var(--primary-soft-hover);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-active: var(--secondary-active);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
+
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight-hover: var(--highlight-hover);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success-500);
+  --color-warning: var(--warning-500);
+  --color-danger: var(--danger-500);
+  --color-danger-foreground: #ffffff;
+  --color-danger-soft: var(--danger-soft);
+
+  /* Direct brand hues (use sparingly; prefer semantic roles above) */
+  --color-paper: var(--paper-200);
+  --color-ink: var(--ink-900);
+  --color-cobalt: var(--cobalt-500);
+  --color-marigold: var(--marigold-500);
+  --color-forest: var(--forest-500);
+  --color-terracotta: var(--orange-500);
+
+  /* Font families (variables injected by next/font in the root layout) */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-playfair), ui-serif, Georgia, "Times New Roman", serif;
+  --font-bengali: var(--font-noto-bengali), var(--font-inter), ui-sans-serif, sans-serif;
+}
+
+/* ------------------------------------------------------------------ *
+ *  3b. THEME MAPPING — static tokens (radius, shadow, easing, type)
+ * ------------------------------------------------------------------ */
+@theme {
+  /* Radius — brand skews soft / organic, so the scale is generous */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 2.75rem;
+
+  /* Elevation — warm, ink-tinted shadows (never neutral grey) */
+  --shadow-xs: 0 1px 2px 0 rgb(36 28 18 / 0.06);
+  --shadow-sm: 0 2px 8px -2px rgb(36 28 18 / 0.08);
+  --shadow-md: 0 8px 24px -8px rgb(36 28 18 / 0.12);
+  --shadow-lg: 0 16px 40px -12px rgb(36 28 18 / 0.16);
+  --shadow-xl: 0 24px 56px -16px rgb(36 28 18 / 0.2);
+
+  /* Easing presets (mirror src/lib/motion/tokens.ts) */
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Overlay entrance animations. Opacity-only for popper content (tooltip,
+     select) so they never fight Radix's positioning transform. Neutralised
+     automatically under prefers-reduced-motion by the global base reset. */
+  --animate-fade: fade 180ms var(--ease-out-soft);
+  --animate-slide-in-right: slide-in-right 240ms var(--ease-out-soft);
+
+  /* Fluid type scale — size + line-height (+ tracking for large sizes).
+     Generates utilities: text-display, text-hero, text-h1…h6, text-lead,
+     text-body, text-small, text-caption. */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.5;
+  --text-body: 1rem;
+  --text-body--line-height: 1.65;
+  --text-lead: clamp(1.125rem, 1.06rem + 0.35vw, 1.375rem);
+  --text-lead--line-height: 1.55;
+  --text-h6: 1rem;
+  --text-h6--line-height: 1.4;
+  --text-h5: 1.125rem;
+  --text-h5--line-height: 1.35;
+  --text-h4: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --text-h4--line-height: 1.3;
+  --text-h3: clamp(1.5rem, 1.3rem + 1vw, 1.95rem);
+  --text-h3--line-height: 1.25;
+  --text-h2: clamp(1.875rem, 1.55rem + 1.6vw, 2.6rem);
+  --text-h2--line-height: 1.18;
+  --text-h1: clamp(2.25rem, 1.8rem + 2.2vw, 3.35rem);
+  --text-h1--line-height: 1.12;
+  --text-h1--letter-spacing: -0.01em;
+  --text-hero: clamp(2.75rem, 2rem + 3.6vw, 4.25rem);
+  --text-hero--line-height: 1.06;
+  --text-hero--letter-spacing: -0.02em;
+  --text-display: clamp(3.25rem, 2.2rem + 5.2vw, 5.5rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.025em;
+}
+
+/* Keyframes for the overlay entrance animations above. */
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  ADMIN (CMS) THEME
+ * ------------------------------------------------------------------ *
+ *  The public site is warm and handcrafted; the CMS is calm and
+ *  utilitarian. Rather than a second component library, the admin shell
+ *  applies `.admin`, which retunes a few SEMANTIC tokens — cooler
+ *  neutrals, tighter radii. Every component keeps working untouched.
+ * ------------------------------------------------------------------ */
+.admin {
+  --background: #fbfaf8;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f4f2ee;
+  --surface-hover: #f0eeea;
+  --card: #ffffff;
+
+  --foreground: #1c1a17;
+  --muted: #f4f2ee;
+  --muted-foreground: #6c665d;
+
+  --border: color-mix(in srgb, #1c1a17 10%, transparent);
+  --border-strong: color-mix(in srgb, #1c1a17 18%, transparent);
+  --input: color-mix(in srgb, #1c1a17 16%, transparent);
+
+  /* Denser, more "application" corners than the public site's soft shapes. */
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 0.875rem;
+}
+
+/* ------------------------------------------------------------------ *
+ *  UTILITIES
+ * ------------------------------------------------------------------ */
+
+/* Page container. Usage: <div class="container-page">…</div> */
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem; /* 1280px */
+  padding-inline: clamp(1rem, 5vw, 2.5rem);
+}
+
+/* Consistent keyboard focus ring. Prefer the `focusRing` class fragment in
+   src/lib/styles.ts for components; this exists for one-off markup. */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  BASE LAYER — accessible, token-driven defaults
+ * ------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :lang(bn) {
+    font-family: var(--font-bengali);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--ink-900);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
