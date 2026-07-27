@@ -28,6 +28,28 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  /**
+   * Keep credentials out of the dev server log.
+   *
+   * Next's dev request logger prints Server Action arguments, so a successful
+   * sign-in wrote the user's **plaintext password** to the terminal:
+   *
+   *   └─ ƒ signIn({"email":"…","password":"…"}) in 1094ms
+   *
+   * That log is visible to anyone reading the terminal, a screen share or a CI
+   * transcript. Suppressing request logging for the auth routes removes the
+   * only path on which a raw credential reaches the log, while leaving request
+   * logging intact everywhere else — it is genuinely useful for debugging.
+   *
+   * Dev-only (production does not log action arguments), but this project is
+   * developed by rotating student volunteers who will run `pnpm dev` and share
+   * screens, so it is worth closing.
+   */
+  logging: {
+    incomingRequests: {
+      ignore: [/^\/admin\/login/],
+    },
+  },
   // Pin the workspace root. Without this, Next infers it from the nearest
   // lockfile and can pick up an unrelated one outside the project (e.g. in the
   // user's home directory), which breaks output file tracing.

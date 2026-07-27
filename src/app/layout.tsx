@@ -4,7 +4,8 @@ import { Inter, Noto_Serif_Bengali, Playfair_Display } from "next/font/google";
 import { Footer } from "@/components/navigation/footer";
 import { Header } from "@/components/navigation/header";
 import { AppProviders } from "@/providers";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { generateSiteMetadata } from "@/lib/seo/metadata";
+import { getSiteContent } from "@/server/content/site";
 import { cn } from "@/lib/utils";
 
 import "./globals.css";
@@ -31,7 +32,13 @@ const notoBengali = Noto_Serif_Bengali({
   preload: false,
 });
 
-export const metadata: Metadata = buildMetadata();
+/**
+ * Site-wide metadata from the CMS. `getSiteContent()` is request-cached, so
+ * this shares a single fetch with the header and footer below.
+ */
+export function generateMetadata(): Promise<Metadata> {
+  return generateSiteMetadata();
+}
 
 export const viewport: Viewport = {
   themeColor: "#f6eedd",
@@ -40,7 +47,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const site = await getSiteContent();
+
   return (
     <html
       lang="en"
@@ -56,11 +65,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </a>
         <AppProviders>
           <div className="flex min-h-dvh flex-col">
-            <Header />
+            <Header site={site} />
             <main id="main-content" className="flex-1">
               {children}
             </main>
-            <Footer />
+            <Footer site={site} />
           </div>
         </AppProviders>
       </body>

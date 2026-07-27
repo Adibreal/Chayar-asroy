@@ -13,4 +13,7 @@ next-env.d.ts
 # Managed by other tools — don't let Prettier fight them
 .claude
 tsconfig.json
+# Output of `supabase gen types` — reformatting it just creates churn on every
+# regeneration. Its consumer, src/types/database.ts, IS formatted.
+src/types/database.generated.ts
 

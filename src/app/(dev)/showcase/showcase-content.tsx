@@ -72,7 +72,18 @@ import {
   Tooltip,
 } from "@/components/ui";
 import { OpportunityCard, VolunteerCTA, VolunteerHighlights } from "@/components/volunteer";
-import { siteConfig } from "@/config/site";
+import { FacebookIcon } from "@/components/brand/social-icons";
+import type { SocialLink } from "@/components/navigation";
+
+/**
+ * Static demo data. The showcase documents the design system, so it must render
+ * identically regardless of what the CMS currently holds — it deliberately does
+ * not read live site settings.
+ */
+const showcaseSocials: SocialLink[] = [
+  { label: "Instagram", href: "https://www.instagram.com/chayar.asroy", icon: InstagramIcon },
+  { label: "Facebook", href: "https://www.facebook.com/share/1avcTb4Ptr/", icon: FacebookIcon },
+];
 import { type Program, type Story, VOLUNTEER_ROLES } from "@/types";
 
 /* ---------------------------------------------------------------- demo data */
@@ -601,7 +612,7 @@ export function ShowcaseContent() {
         <SectionHeader eyebrow="Contact" title="Reach out to us" />
         <ContactInfo
           items={[
-            { icon: <MapPin />, label: "Location", value: siteConfig.location },
+            { icon: <MapPin />, label: "Location", value: "Dhaka, Bangladesh" },
             {
               icon: <Mail />,
               label: "Email",
@@ -612,12 +623,12 @@ export function ShowcaseContent() {
               icon: <InstagramIcon />,
               label: "Instagram",
               value: "@chayar.asroy",
-              href: siteConfig.socials.find((s) => s.platform === "instagram")?.href ?? "#",
+              href: "https://www.instagram.com/chayar.asroy",
             },
           ]}
         />
-        <SocialContact />
-        <SocialLinks />
+        <SocialContact items={showcaseSocials} />
+        <SocialLinks items={showcaseSocials} />
       </Container>
 
       {/* CTA */}

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { ComponentProps } from "react";
 
-import { siteConfig } from "@/config/site";
+import type { SiteCta } from "@/server/content/site";
 
 import { Button } from "../ui/button";
 
 type PrimaryCtaProps = {
+  /** The CMS's `primaryCta`. Nothing renders when absent or disabled. */
+  cta: SiteCta | null;
   size?: ComponentProps<typeof Button>["size"];
   variant?: ComponentProps<typeof Button>["variant"];
   className?: string;
@@ -14,20 +16,21 @@ type PrimaryCtaProps = {
 };
 
 /**
- * The single, configurable primary call-to-action, sourced from
- * `siteConfig.primaryCta`. Reused by the navbar, hero, and campaign band so the
- * organisation's current priority action has ONE source of truth — change the
- * label/href in one place. Renders nothing when `enabled` is false (e.g.
- * between campaigns), so callers don't need their own visibility checks.
+ * The single primary call-to-action, edited once in Site settings and reused by
+ * the navbar, hero, mobile drawer and campaign band — so the organisation's
+ * current priority action has ONE source of truth.
+ *
+ * Renders nothing when the CTA is absent or `enabled` is false (e.g. between
+ * campaigns), so callers never need their own visibility checks.
  */
 export function PrimaryCta({
+  cta,
   size = "md",
   variant = "primary",
   className,
   onClick,
 }: PrimaryCtaProps) {
-  const cta = siteConfig.primaryCta;
-  if (!cta.enabled) return null;
+  if (!cta?.enabled) return null;
 
   return (
     <Button asChild size={size} variant={variant} className={className}>

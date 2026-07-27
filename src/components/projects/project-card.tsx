@@ -6,7 +6,6 @@ import { Heading } from "../typography/heading";
 import { Text } from "../typography/text";
 import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
-import { isRouteAvailable } from "@/config/site";
 import { focusRing } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 import type { Program } from "@/types";
@@ -21,6 +20,11 @@ const categoryMeta = {
 type ProjectCardProps = {
   project: Program;
   href?: string;
+  /**
+   * Whether `/programs` is built yet, from the CMS navigation. Passed in rather
+   * than looked up so a grid of cards never queries navigation once per card.
+   */
+  detailsAvailable?: boolean;
   className?: string;
 };
 
@@ -29,12 +33,17 @@ type ProjectCardProps = {
  * card is clickable via a stretched link while keeping the title semantic and
  * keyboard-focusable.
  */
-export function ProjectCard({ project, href, className }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  href,
+  detailsAvailable = false,
+  className,
+}: ProjectCardProps) {
   const meta = categoryMeta[project.category];
   // Detail pages don't exist until /programs ships, so the card presents as
   // static content rather than a link that would 404. Re-links automatically
-  // once the route is marked available in siteConfig.
-  const link = href ?? (isRouteAvailable("/programs") ? `/programs/${project.slug}` : null);
+  // once that navigation item is marked available in the CMS.
+  const link = href ?? (detailsAvailable ? `/programs/${project.slug}` : null);
 
   return (
     <Card

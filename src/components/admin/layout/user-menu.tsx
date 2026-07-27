@@ -3,6 +3,7 @@
 import { ExternalLink, LogOut } from "lucide-react";
 import Link from "next/link";
 import { DropdownMenu } from "radix-ui";
+import { useRef } from "react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { ROLE_LABELS } from "@/lib/permissions";
@@ -14,11 +15,12 @@ import type { Profile } from "@/types/database";
 /**
  * Account menu: who you are, your role, a link to the live site, and sign out.
  *
- * Sign-out posts to the Server Action inside a plain `<form>`, so it works
- * without JavaScript and needs no client-side session juggling.
+ * Sign-out posts to the Server Action through a real `<form>`, so there is no
+ * client-side session juggling — the action clears the cookie and redirects.
  */
 export function UserMenu({ user }: { user: Profile }) {
   const displayName = user.full_name?.trim() || user.email;
+  const signOutForm = useRef<HTMLFormElement>(null);
 
   return (
     <DropdownMenu.Root>
@@ -65,17 +67,29 @@ export function UserMenu({ user }: { user: Profile }) {
 
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
 
-          <DropdownMenu.Item asChild>
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="flex w-full cursor-default items-center gap-2 rounded-lg px-2.5 py-2 text-small text-danger outline-none data-[highlighted]:bg-danger-soft"
-              >
-                <LogOut className="size-4" aria-hidden />
-                Sign out
-              </button>
-            </form>
-          </DropdownMenu.Item>
+          {/*
+            The form must NOT be the menu item itself. With `asChild`, Radix
+            rendered the <form> as the item and closed the menu on selection —
+            unmounting the form in the same event, before the browser could
+            submit it. Sign-out silently did nothing.
+
+            Instead the form wraps the item (`display: contents`, so layout is
+            unchanged) and selection submits it explicitly. `preventDefault`
+            keeps the menu mounted long enough for the submission to start; the
+            action's redirect tears it down.
+          */}
+          <form ref={signOutForm} action={signOut} className="contents">
+            <DropdownMenu.Item
+              onSelect={(event) => {
+                event.preventDefault();
+                signOutForm.current?.requestSubmit();
+              }}
+              className="flex w-full cursor-default items-center gap-2 rounded-lg px-2.5 py-2 text-small text-danger outline-none data-[highlighted]:bg-danger-soft"
+            >
+              <LogOut className="size-4" aria-hidden />
+              Sign out
+            </DropdownMenu.Item>
+          </form>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

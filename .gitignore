@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Claude Code local (personal, machine-specific) settings
 .claude/settings.local.json
+
+# Supabase CLI scratch state (link metadata, pooler URLs — machine-local)
+supabase/.temp/

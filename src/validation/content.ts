@@ -138,13 +138,56 @@ export const siteSettingsSchema = z.object({
  * truth per piece of content.
  */
 export const homepageSchema = z.object({
+  // 1 · Hero
   heroEyebrow: optionalText(80),
   heroTitle: requiredText(120),
   heroDescription: optionalText(400),
   heroMediaId: uuidSchema.optional(),
+  heroSecondaryCtaLabel: optionalText(40),
+  heroSecondaryCtaHref: hrefSchema.optional(),
+
+  // 2 · Mission. Exactly two pillars, matching the two-column design — flat
+  // fields rather than an array so the editor stays a plain form.
   missionEyebrow: optionalText(80),
   missionTitle: optionalText(160),
   missionDescription: optionalText(600),
+  missionPillarOneTitle: optionalText(80),
+  missionPillarOneBody: optionalText(300),
+  missionPillarTwoTitle: optionalText(80),
+  missionPillarTwoBody: optionalText(300),
+
+  // 3 · Featured programs — the section heading only. *Which* programs appear
+  // is the `is_featured` flag on each program, edited where the program lives.
+  programsEyebrow: optionalText(80),
+  programsTitle: optionalText(160),
+  programsDescription: optionalText(400),
+
+  // 4 · Gallery preview heading.
+  galleryEyebrow: optionalText(80),
+  galleryTitle: optionalText(160),
+
+  // 5 · Voices — the pull quote above the testimonials.
+  voicesQuote: optionalText(300),
+  voicesAuthor: optionalText(80),
+
+  // 5.5 · Impact. `impactTitle` supports *emphasis* between asterisks, which
+  // renders as the brand's accented italic — that flourish is part of the
+  // approved design, so editors keep control of it without needing HTML.
+  impactEyebrow: optionalText(80),
+  impactTitle: optionalText(160),
+  impactDescription: optionalText(600),
+  impactQuote: optionalText(300),
+  impactQuoteAttribution: optionalText(80),
+
+  // 6 · How to help. One collection method per line.
+  helpEyebrow: optionalText(80),
+  helpTitle: optionalText(160),
+  helpDescription: optionalText(600),
+  helpMethods: optionalText(600),
+  helpCtaLabel: optionalText(40),
+  helpCtaHref: hrefSchema.optional(),
+
+  // SEO
   metaTitle: optionalText(70),
   metaDescription: optionalText(160),
   ogMediaId: uuidSchema.optional(),

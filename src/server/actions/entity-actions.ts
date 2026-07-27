@@ -28,6 +28,51 @@ export function toRowPayload(input: Record<string, unknown>): Record<string, unk
   return row;
 }
 
+/**
+ * Tables that actually carry an `updated_by` audit column, derived from the
+ * database types rather than trusted to memory.
+ */
+type AuditedTable = {
+  [K in TableName]: "updated_by" extends keyof Row<K> ? K : never;
+}[TableName];
+
+/**
+ * The audit-trail whitelist.
+ *
+ * `satisfies` rejects a table that has no `updated_by` column, and the
+ * exhaustiveness check below rejects one that has the column but is missing
+ * here. Both directions are compile errors, so this list cannot silently drift
+ * from the schema — including after `database.ts` is regenerated.
+ *
+ * This exists because stamping `updated_by` unconditionally once broke every
+ * save in the Gallery editor: `gallery_items` had no such column, and the
+ * payload cast hid it from `typecheck` until it failed at runtime. See
+ * migration `0006_gallery_item_audit.sql`.
+ */
+const AUDITED_TABLES = [
+  "site_settings",
+  "pages",
+  "programs",
+  "gallery_albums",
+  "gallery_items",
+  "stories",
+] as const satisfies readonly AuditedTable[];
+
+/** Compile error if a table gained `updated_by` but was never added above. */
+type UntrackedAuditedTable = Exclude<AuditedTable, (typeof AUDITED_TABLES)[number]>;
+const _allAuditedTablesTracked: UntrackedAuditedTable extends never ? true : never = true;
+void _allAuditedTablesTracked;
+
+/** Add the audit stamp only where the column exists. */
+function withAuditStamp<T extends TableName>(
+  table: T,
+  row: Record<string, unknown>,
+  userId: string,
+): Record<string, unknown> {
+  if (!(AUDITED_TABLES as readonly TableName[]).includes(table)) return row;
+  return { ...row, updated_by: userId };
+}
+
 type EntityActionConfig<T extends TableName> = {
   table: T;
   createSchema: z.ZodType;
@@ -83,10 +128,9 @@ export function createEntityActions<T extends TableName>(config: EntityActionCon
       return attempt(async () => {
         const user = await requireEditor();
         const values = parse(config.createSchema, input);
-        const row = await repository.create({
-          ...buildRow(values),
-          updated_by: user.id,
-        } as never);
+        const row = await repository.create(
+          withAuditStamp(config.table, buildRow(values), user.id) as never,
+        );
         refresh();
         return row;
       });
@@ -96,10 +140,10 @@ export function createEntityActions<T extends TableName>(config: EntityActionCon
       return attempt(async () => {
         const user = await requireEditor();
         const { id, ...rest } = parse(config.updateSchema, input);
-        const row = await repository.update(String(id), {
-          ...buildRow(rest),
-          updated_by: user.id,
-        } as never);
+        const row = await repository.update(
+          String(id),
+          withAuditStamp(config.table, buildRow(rest), user.id) as never,
+        );
         refresh();
         return row;
       });

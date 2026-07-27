@@ -1,7 +1,8 @@
 # Chayar Asroy — Project Handoff
 
 Everything a new contributor (or a new conversation) needs to continue this
-project. Reflects the state as of **26 July 2026**.
+project. Reflects the state as of **26 July 2026**, re-audited against the
+working tree on that date — every claim below was checked, not assumed.
 
 ---
 
@@ -21,25 +22,35 @@ solutions over clever ones.
 
 |                              | Status                                                                        |
 | ---------------------------- | ----------------------------------------------------------------------------- |
-| Public homepage              | ✅ Built, refined, validated                                                  |
+| Public homepage              | ✅ Built, refined, validated (8 sections, CMS-driven)                         |
 | Design system                | ✅ Complete + documented                                                      |
-| Backend platform (Supabase)  | ✅ Code complete — **never run against a live DB**                            |
-| CMS framework + 6 editors    | ✅ Built — **never run against a live DB**                                    |
+| SEO surface                  | ✅ `buildMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`                   |
+| Version control              | ✅ Committed and pushed to GitHub (`main`)                                    |
+| Backend platform (Supabase)  | ✅ Provisioned and **validated against the live project**                     |
+| CMS framework + 6 editors    | ✅ Built and **validated end-to-end in the browser** (Phase 5D.0)             |
 | Inner public pages           | ❌ Not built (Our Journey, Programs, Gallery, Stories, Get Involved, Contact) |
-| Public site reading from CMS | ❌ Not done — this is **Phase 5D**                                            |
+| Public site reading from CMS | ✅ **Phase 5D** — homepage and shell read live CMS data                       |
 
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy`
-**Git:** initialised, branch `master`, **zero commits so far** (~24 untracked
-entries). Nothing has been committed or pushed yet.
+**Git:** branch `main`, working tree **clean**, 244 tracked files.
+One commit: `3e85df2` — _feat: complete homepage, CMS architecture, and
+refinements_ (26 Jul 2026). Pushed to and in sync with `origin` →
+`https://github.com/Adibreal/Chayar-asroy.git`.
 
-**Validation — all green:**
+> The remote is a **personal** GitHub account. Moving it to an org-owned
+> account is a launch task (see §8).
+
+**Validation — all green (re-verified 26 July 2026):**
 
 ```bash
-pnpm lint        # ✅
-pnpm typecheck   # ✅
-pnpm build       # ✅
+pnpm lint         # ✅
+pnpm typecheck    # ✅
+pnpm build        # ✅ 18 routes — 6 static, 12 dynamic (all /admin + login)
 pnpm audit --prod # ✅ no known vulnerabilities
 ```
+
+The build emits one warning: Next 16 deprecates the `middleware` file
+convention in favour of `proxy`. See §9.
 
 ---
 
@@ -66,31 +77,66 @@ supports those. Revisit when upstream bumps.
 
 ```
 src/
+├── middleware.ts             session refresh + coarse /admin auth gate
 ├── app/
+│   ├── layout.tsx            shell: Header + <main> + Footer
 │   ├── page.tsx              public homepage
+│   ├── not-found.tsx         public 404
+│   ├── globals.css           the three token layers live here
+│   ├── icon.svg              favicon (hand-authored tree mark)
+│   ├── robots.ts sitemap.ts  generated SEO endpoints
 │   ├── (admin)/admin/        protected CMS (force-dynamic)
 │   ├── (auth)/admin/login/   login — SEPARATE group on purpose (see §6)
-│   └── (dev)/showcase/       design-system showcase, dev only
+│   └── (dev)/showcase/       design-system showcase, 404s in production
 ├── components/
 │   ├── ui/ layout/ typography/ brand/ motion/   design system (Phase 3A)
 │   ├── navigation/ hero/ projects/ gallery/ testimonials/
 │   │   impact/ volunteer/ contact/ cta/ sections/ media/   sections (3B)
 │   └── admin/                CMS framework: layout, data, forms,
 │                             feedback, dashboard, media, permissions
-├── config/     env.ts (validated), site.ts, admin-nav.ts
-├── content/    home.ts — homepage content as data
-├── lib/        utils(cn), styles, motion, seo, supabase clients, permissions
+├── config/     env.ts (validated), site.ts (infrastructure only), admin-nav.ts
+├── hooks/      use-media-query, use-prefers-reduced-motion
+├── providers/  motion-provider (MotionConfig reducedMotion="user")
+├── lib/        utils(cn), styles, polymorphic, motion/, seo/,
+│               supabase/ (client, server, public, middleware, admin, config),
+│               permissions
 ├── server/     auth, db, repositories, actions, storage, shared, media-url
-├── types/      database.ts (hand-authored), content.ts
+│   └── content/  site.ts, home.ts — the PUBLIC read layer (Phase 5D)
+├── types/      database.ts (derived), database.generated.ts, content.ts
 └── validation/ common, auth, media, content  (Zod — single source of truth)
 
 supabase/migrations/  0001 foundation · 0002 content · 0003 RLS
                       0004 storage    · 0005 gallery fields
-supabase/seed.sql     idempotent starter data
+                      0006 gallery_items.updated_by (audit)
+                      0007 human-readable consent refusal message
+                      0008 impact_stats.icon
+supabase/seed.sql     idempotent starter data + homepage placeholder content
+
+scripts/  validate-backend.mjs     seed, anon RLS, storage, consent gate
+          validate-auth-roles.mjs  signed-in RLS per role, audit column
 ```
 
-**Docs:** `README.md`, `DESIGN_SYSTEM.md`, `docs/ARCHITECTURE.md`,
-`docs/BACKEND.md`, `docs/DATABASE.md`, `docs/CMS.md`.
+Both harnesses run against the live project and clean up after themselves:
+
+```bash
+node --env-file=.env.local scripts/validate-backend.mjs
+node --env-file=.env.local scripts/validate-auth-roles.mjs <admin-email>
+```
+
+`src/types/database.generated.ts` is generated from the live schema and
+`database.ts` derives its named aliases from it — so the two cannot drift, and
+PostgREST embeds (`media:media_id(…)`) type-check. Regenerate after every
+migration.
+
+**Admin routes built:** `/admin` (dashboard) · `/admin/pages` (homepage) ·
+`/admin/programs` (+ `new`, `[id]`) · `/admin/stories` (+ `new`, `[id]`) ·
+`/admin/gallery` · `/admin/media` · `/admin/settings`. Gallery and Media are
+single-screen managers (panel-based), which is why they have no `new`/`[id]`
+child routes.
+
+**Docs:** `BOOTSTRAP.md` (fresh-conversation primer), `README.md`,
+`DESIGN_SYSTEM.md`, `docs/ARCHITECTURE.md`, `docs/BACKEND.md`,
+`docs/DATABASE.md`, `docs/CMS.md`.
 
 ---
 
@@ -166,7 +212,7 @@ content, no markup the public site can't style.
 | `createEntityActions({...})`                               | Generates create/update/remove/reorder Server Actions; auto camelCase→snake_case                                           |
 | `createAction({...})`                                      | Generic action factory: authorize → validate → execute → revalidate → `Result`                                             |
 | `requireUser/requireEditor/requireAdmin/requireSuperAdmin` | Session + role guards                                                                                                      |
-| `uploadMedia` / `deleteMedia` / `getMediaUrl`              | The **only** places that touch storage                                                                                     |
+| `uploadMedia` / `deleteMedia` / `getMediaUrl`              | The **only** places that touch storage (`getPublicUrl` / `getSignedUrl` back them)                                         |
 | `Result<T>`, `AppError`, `attempt()`                       | Error handling                                                                                                             |
 
 ### CMS UI — all from `@/components/admin`
@@ -194,13 +240,21 @@ content, no markup the public site can't style.
 
 ## 8. Outstanding tasks
 
-### Blocking — needed before anything can be verified
+### ✅ Done in Phase 5D.0 — provisioning and validation
 
-1. **Create a Supabase project.** Nothing has ever run against a live database.
-   Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-   `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
-2. **Run migrations `0001`–`0005` + `seed.sql`**, then regenerate types:
-   `pnpm dlx supabase gen types typescript --project-id <ref> > src/types/database.ts`
+Supabase project `Chayar-asroy` (`ap-northeast-2`, Postgres 17) is live and
+linked. Migrations `0001`–`0007` applied, seed run, types regenerated, first
+`super_admin` created, and every CMS editor exercised in the browser against it.
+Steps 1–4 below are complete and kept only as the recipe for a second
+environment (staging).
+
+1. **Create a Supabase project.** Set `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
+2. **Run migrations `0001`–`0006` + `seed.sql`.** `supabase link` needs a
+   `config.toml`, which is not committed — run `pnpm dlx supabase init` first,
+   then `login`, `link`, `db push`. Then regenerate types **into a new file**:
+   `pnpm dlx supabase gen types typescript --project-id <ref> > src/types/database.generated.ts`
+   — **never** over `src/types/database.ts` (see §9).
 3. **Create the first user**, then promote:
    `update public.profiles set role='super_admin' where email='…';`
 4. **Smoke-test one full cycle**: log in → upload an image → create a program →
@@ -210,7 +264,8 @@ content, no markup the public site can't style.
 ### Content blockers — required before public launch
 
 5. **Real impact figures.** The current 500/40/25/12 are **placeholders the
-   assistant invented**, flagged `TODO(org)` in `src/content/home.ts`.
+   assistant invented**, now living in the `impact_stats` table and flagged
+   `TODO(org)` in `supabase/seed.sql`. Edit them in the CMS, not in code.
    Publishing invented impact numbers would mislead donors.
 6. **Guardian consent** for any identifiable child's photo or name. Testimonials
    currently use first-name + age placeholders.
@@ -218,25 +273,70 @@ content, no markup the public site can't style.
 8. Confirm the volunteer quote in the Impact section is something a volunteer
    actually said.
 
-### Next phase (5D) — migrate the public site to the CMS
+### ✅ Phase 5D — public site reads from the CMS
 
-The homepage still reads `src/content/home.ts` and `src/config/site.ts`. Swap
-these for repository calls. The schema and components were designed for this:
-sections already take data via props.
+`src/content/` is gone and `src/config/site.ts` now holds infrastructure only
+(canonical URL, locale, logo asset, and a last-resort brand identity used when
+Supabase is unconfigured). Everything the public site shows comes from
+`@/server/content`:
+
+- **`getSiteContent()`** — settings, navigation and socials, request-cached and
+  shared by the header, footer and metadata.
+- **`getHomeContent()`** — homepage copy (`pages.content` jsonb) plus featured
+  programs, gallery preview, testimonials and impact figures.
+
+Reads go through `lib/supabase/public.ts`, a **cookie-less** anon client, so `/`
+stays statically rendered (verified: still `○` in the build output) and is
+refreshed by the `revalidatePath()` calls the CMS actions already make.
 
 ### Later
 
-- Inner pages (Our Journey, Programs, Gallery, Stories, Get Involved, Contact)
+- Inner pages (Our Journey, Programs, Gallery, Stories, Get Involved, Contact).
+  All six are still `available: false` in `siteConfig.nav`; flip each flag as
+  its page ships and the navigation and section CTAs re-link themselves.
 - Supabase-backed forms (volunteer applications, donation pledges, contact)
-- Deploy to Vercel; **org-owned** domain + accounts, not a graduating student's
+- **Transfer ownership.** The repo now lives at
+  `github.com/Adibreal/Chayar-asroy` — a personal account. Repo, Vercel
+  project, domain and Supabase org should all be **org-owned**, not a
+  graduating student's.
 - Decide EN-only vs bilingual EN/BN (Bengali font stack already wired)
+- Consider migrating `src/middleware.ts` to Next 16's `proxy` convention (§9)
 
 ---
 
 ## 9. Known limitations & gotchas
 
-**Nothing has been verified against a live database.** All backend and CMS code
-is type-safe and builds, but has never executed a query, upload or save.
+**`supabase db push --include-seed` will not re-run a seed it has already
+applied.** It prints "Updating seed hash" and records the new hash _without
+executing the file_, so edits to `seed.sql` never reach an existing remote
+project. Run changed seed SQL through the dashboard SQL editor instead. (The
+file stays idempotent, so re-running it is always safe.)
+
+**Public reads must use `lib/supabase/public.ts`, not `server.ts`.** The latter
+reads `cookies()`, which opts the route out of static rendering; using it on the
+homepage would silently turn `/` from `○` into `ƒ` and cost a database round
+trip on every visit. Check the build's route table after touching public data.
+
+**Radix `Menu.Item asChild` around a `<form>` silently breaks submission.**
+Sign-out was dead for exactly this reason: with `asChild` the `<form>` _became_
+the menu item, and selecting it closed and unmounted the menu in the same event,
+before the browser could submit. Nothing errored — the click just did nothing.
+Wrap the item in the form instead (`className="contents"`) and submit explicitly
+from `onSelect` after `preventDefault()`. Suspect this pattern whenever a menu
+action appears to do nothing.
+
+**Next's dev server logs Server Action arguments — including passwords.** A
+successful sign-in printed the user's plaintext password to the terminal. Closed
+by ignoring `/admin/login` in `logging.incomingRequests` (`next.config.ts`).
+Never add a credential-bearing argument to a Server Action on a route whose
+request logging is still enabled.
+
+**Copying server props into `useState` freezes the list.** `GalleryManager` did
+`useState(initialItems)` and then called `router.refresh()`; the refreshed props
+were ignored because `useState` only reads its initial value once, so newly
+added images never appeared until a full page load. Derive from props and let
+`router.refresh()` be the single update path — the same trap as the
+`set-state-in-effect` rule below, one layer up.
 
 **Animations are unverified at runtime.** The in-app browser pane in this
 environment stops compositing — screenshots fail and **all** Motion
@@ -259,7 +359,39 @@ sync with the `--text-*` tokens in `globals.css`.**
 **pnpm overrides live in `pnpm-workspace.yaml`**, not `package.json` — pnpm v11
 ignores the `pnpm` field. Losing this silently reintroduced 5 CVEs once.
 `brace-expansion` must stay pinned **per major** (`@1`, `@2`); forcing the
-advisory's v5 globally breaks ESLint via minimatch v3.
+advisory's v5 globally breaks ESLint via minimatch v3. `package.json` keeps a
+**mirrored npm `overrides` block** so the project stays safe under either
+package manager — the two lists must be edited together. `pnpm-workspace.yaml`
+also carries `allowBuilds` (sharp, unrs-resolver) and `minimumReleaseAgeExclude`
+entries; removing those breaks install, not security.
+
+**`src/types/database.ts` must never be overwritten by the type generator.** It
+is hand-authored and exports ~16 named types (`UserRole`, `Profile`, `Program`,
+`Row<T>`, `TableName`, `InsertPayload`…) imported by **31 files**.
+`supabase gen types` emits only `Database` plus generic helpers, so the obvious
+`… > src/types/database.ts` breaks the entire backend and CMS at typecheck.
+Generate to `database.generated.ts` and re-export the aliases from it, keeping
+this module's public API identical. (`docs/BACKEND.md` §1.)
+
+**Server Action payloads are cast before they reach supabase-js**, so
+`typecheck` cannot verify that a written column actually exists. This shipped a
+real bug: `createEntityActions` stamped `updated_by` on `gallery_items`, which
+had no such column, and **every Gallery save failed** with PostgREST `PGRST204`.
+Fixed by migration `0006` plus a type-level `AUDITED_TABLES` guard in
+`entity-actions.ts` that fails compilation in both directions. When adding a
+column-writing behaviour to the shared factory, verify it against the schema —
+the compiler will not.
+
+**The production build needs network access to Google Fonts.** `next/font`
+fetches Inter at build time; offline or with the request blocked, `pnpm build`
+fails with "Failed to fetch `Inter` from Google Fonts". Retrying once the
+network is available succeeds — it is not a code regression.
+
+**Next 16 deprecates the `middleware` convention.** Every build prints
+`The "middleware" file convention is deprecated. Please use "proxy" instead.`
+`src/middleware.ts` still runs and the build succeeds — the route table lists it
+as `ƒ Proxy (Middleware)`. Migrating is a deliberate later decision; it is not a
+broken state.
 
 **React lint rule `set-state-in-effect`** bans syncing props→state in an effect.
 Fix by remounting with `key={item?.id}` and initialising state from props, or by

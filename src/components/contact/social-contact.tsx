@@ -17,7 +17,8 @@ export function SocialContact({
 }: {
   title?: ReactNode;
   description?: ReactNode;
-  items?: SocialLink[];
+  /** Resolved social links — see `toSocialLinks()` for CMS rows. */
+  items: SocialLink[];
   className?: string;
 }) {
   return (

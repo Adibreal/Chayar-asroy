@@ -11,7 +11,9 @@ volunteers. Optimise for maintainability, accessibility, security and clarity.
 Prefer boring, proven solutions. Never invent organisational facts or numbers.
 
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy` (Windows, PowerShell).
-Git initialised, branch `master`, **zero commits**.
+Branch `main`, working tree clean, **one commit** (`3e85df2` — _feat: complete
+homepage, CMS architecture, and refinements_), pushed to and in sync with
+`origin` (`github.com/Adibreal/Chayar-asroy`). 244 tracked files.
 
 ## Stack
 
@@ -29,29 +31,50 @@ Pins are deliberate: TypeScript **5.x**, ESLint **9.x** (not 7/10).
 - Design system (`ui`, `layout`, `typography`, `brand`, `motion`) + `/showcase`
 - Section library (nav, hero, projects, gallery, testimonials, impact,
   volunteer, contact, cta, sections, media)
-- Public homepage
-- Backend platform: schema, RLS, storage, auth, repositories, actions
+- Public homepage (8 sections: hero · mission · featured programs · gallery
+  preview · testimonials · impact · how-to-help · campaign CTA)
+- SEO surface: `buildMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`
+- Backend platform: schema, RLS, storage, auth, repositories, actions,
+  middleware session gate
 - CMS framework + 6 editors: Homepage, Programs, Stories, Gallery, Media
   library, Site settings
+- Committed and pushed to GitHub (first commit, `main`)
 
-**Not done:** inner public pages; public site reading from the CMS (Phase 5D).
+- **Phase 5D.0:** Supabase provisioned (`ap-northeast-2`, Postgres 17),
+  migrations `0001`–`0007` applied, seed run, types regenerated, first
+  `super_admin` created, and all six editors validated in the browser against
+  the live backend.
+
+- **Phase 5D:** public site migrated to the CMS — `src/content/` retired,
+  `siteConfig` reduced to infrastructure, homepage + shell read live data
+  through `src/server/content/`.
+
+**Not done:** inner public pages (Our Journey, Programs, Gallery, Stories, Get
+Involved, Contact); real organisational content (Phase 6).
 
 ## Architecture
 
 ```
-src/app/  page.tsx (home) · (admin)/admin/* (protected, force-dynamic)
+src/app/  page.tsx (home) · layout.tsx (Header + main + Footer) · not-found.tsx
+          globals.css · icon.svg · robots.ts · sitemap.ts
+          (admin)/admin/* (protected, force-dynamic)
           (auth)/admin/login (separate group — required) · (dev)/showcase
+src/middleware.ts   session refresh + coarse /admin auth gate
 src/components/  ui layout typography brand motion | section folders | admin/*
 src/config/   env.ts (validated) · site.ts · admin-nav.ts
-src/content/  home.ts
-src/lib/      utils(cn) styles motion seo supabase/* permissions
+src/hooks/    use-media-query · use-prefers-reduced-motion
+src/providers/  motion-provider (MotionConfig reducedMotion="user")
+src/lib/      utils(cn) styles polymorphic motion/* seo/* supabase/* permissions
 src/server/   auth db repositories actions storage shared media-url
-src/types/    database.ts content.ts
+src/server/content/  site.ts home.ts  ← the PUBLIC read layer (Phase 5D)
+src/types/    database.ts (derived) database.generated.ts content.ts index.ts
 src/validation/  common auth media content   ← single source of input truth
-supabase/migrations/ 0001–0005 · seed.sql
+supabase/migrations/ 0001–0008 · seed.sql
+scripts/  validate-backend.mjs · validate-auth-roles.mjs (live-DB harnesses)
 ```
 
-Docs: `HANDOFF.md`, `DESIGN_SYSTEM.md`, `docs/{ARCHITECTURE,BACKEND,DATABASE,CMS}.md`
+Docs: `HANDOFF.md` (canonical), `README.md`, `DESIGN_SYSTEM.md`,
+`docs/{ARCHITECTURE,BACKEND,DATABASE,CMS}.md`
 
 ## Reusable abstractions — use, don't reinvent
 
@@ -85,9 +108,14 @@ server list page reading `searchParams` + one form component (new & edit) in
 - Roles: `super_admin` > `admin` (delete) > `editor` (create/edit).
 - Publishing a gallery item requires `media.consent_verified` (DB trigger).
 - Table state lives in the URL (`?q=&sort=&page=`).
-- Route availability is config (`siteConfig.nav.available`) — never link to an
-  unbuilt page.
-- One configurable `siteConfig.primaryCta` reused by navbar/hero/campaign band.
+- Public content comes from `@/server/content` (`getSiteContent`,
+  `getHomeContent`) — never inline `supabase.from()` in a page or component,
+  and never reintroduce content-as-code.
+- Public reads use the **cookie-less** `lib/supabase/public.ts` client so `/`
+  stays statically rendered; `server.ts` would force it dynamic.
+- Route availability comes from `navigation_items.is_available` via
+  `createRouteAvailability(site.nav)` — never link to an unbuilt page.
+- One `primaryCta` in Site settings, reused by navbar/hero/drawer/campaign band.
 - WCAG 2.2 AA; respect `prefers-reduced-motion`; animate only opacity/transform.
 - Conventional Commits.
 
@@ -98,9 +126,14 @@ server list page reading `searchParams` + one form component (new & edit) in
 - `cn()` needs custom font sizes registered (`src/lib/utils/cn.ts`
   `extendTailwindMerge`). Keep that list in sync with `--text-*` in
   `globals.css`, or sizes silently render at 16px.
-- pnpm overrides live in `pnpm-workspace.yaml`, not `package.json`.
-  `brace-expansion` pinned per major (`@1`, `@2`) — v5 breaks ESLint.
+- pnpm reads overrides from `pnpm-workspace.yaml`, **not** `package.json`'s
+  `pnpm` field. `package.json` keeps a mirrored npm `overrides` block on
+  purpose — change both or neither. `brace-expansion` pinned per major
+  (`@1`, `@2`) — v5 breaks ESLint via minimatch v3.
 - React lint bans setState-in-effect: remount via `key`, or adjust during render.
+- Next 16 warns that the `middleware` file convention is deprecated in favour of
+  `proxy`. `src/middleware.ts` still works and the build passes; migrating is a
+  deliberate later decision, not an oversight.
 - The in-app browser pane often stops compositing: screenshots fail and **all**
   Motion `whileInView` stalls at opacity 0 page-wide. Verify by sampling
   `main [style*="opacity"]` — if everything is 0, it's the environment.
@@ -120,25 +153,34 @@ dignity-first; children are creators, never objects of pity. Logo:
 
 ## Immediate next steps
 
-1. **Provision Supabase** — nothing has ever run against a live database. Set
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-   `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
-2. Run migrations `0001`–`0005` + `seed.sql`; regenerate `src/types/database.ts`.
-3. Create first user; `update public.profiles set role='super_admin' where
-email='…';`
-4. Smoke-test: log in → upload image → create program → publish.
-5. Then **Phase 5D**: point the public site at the CMS (homepage currently reads
-   `src/content/home.ts` and `src/config/site.ts`).
+Supabase is provisioned and the public site reads from it. Next is **Phase 6**:
+replacing the placeholder CMS content with real organisational content, then
+building the inner pages.
+
+Setting up a _second_ environment (staging) follows the recipe in
+`docs/BACKEND.md` §1: `supabase init` → `login` → `link` → `db push`
+(`0001`–`0008`), run `seed.sql` in the SQL editor, regenerate types **into
+`database.generated.ts`**, create the first user in the dashboard, then
+`update public.profiles set role='super_admin' where email='…';`.
 
 **Launch blockers (content, from the org):** real impact figures — the current
-500/40/25/12 are placeholders marked `TODO(org)`; guardian consent for any
-identifiable child's photo or name; real copy and photography.
+500/40/25/12 are placeholders marked `TODO(org)` in `supabase/seed.sql` and now
+edited in the CMS; guardian consent for any identifiable child's photo or name;
+real copy and photography; confirmation that the volunteer quote in the Impact
+section is something a volunteer actually said. **No gallery images exist yet**,
+so that homepage section is hidden until images are uploaded with consent.
+
+**Launch blocker (ownership):** the GitHub remote is a personal account
+(`Adibreal`). Repo, domain, hosting and Supabase should move to org-owned
+accounts before launch so nothing is lost when a student graduates.
 
 ## Validation — run after every subsystem, resolve everything
 
 ```bash
 pnpm lint && pnpm typecheck && pnpm build
 ```
+
+All four (including `pnpm audit --prod`) last verified green on 26 July 2026.
 
 State plainly what was verified vs assumed. Do not claim runtime behaviour that
 was not observed.

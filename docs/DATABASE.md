@@ -58,14 +58,14 @@ meaningless.
 
 ### Editorial content
 
-| Table                              | Notes                                                                                                                                              |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pages`                            | Route-level content + SEO for singleton pages. `content jsonb` lets a page's composition evolve without a migration (validated by Zod in the app). |
-| `programs`                         | Programmes. `is_featured` + `order_index` drive the homepage.                                                                                      |
-| `gallery_albums` / `gallery_items` | Albums are optional — an item can stand alone.                                                                                                     |
-| `stories`                          | Long-form narratives.                                                                                                                              |
-| `testimonials`                     | Short quotes; attribution deliberately minimal (first name + age) to protect children.                                                             |
-| `impact_stats`                     | Headline numbers.                                                                                                                                  |
+| Table                              | Notes                                                                                                                                                                                                          |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pages`                            | Route-level content + SEO for singleton pages. `content jsonb` lets a page's composition evolve without a migration (validated by Zod in the app).                                                             |
+| `programs`                         | Programmes. `is_featured` + `order_index` drive the homepage.                                                                                                                                                  |
+| `gallery_albums` / `gallery_items` | Albums are optional — an item can stand alone. Items also carry `photographer` (credit), `category` (free text, so volunteers can add a grouping without a migration) and `is_featured` — all added in `0005`. |
+| `stories`                          | Long-form narratives.                                                                                                                                                                                          |
+| `testimonials`                     | Short quotes; attribution deliberately minimal (first name + age) to protect children.                                                                                                                         |
+| `impact_stats`                     | Headline numbers.                                                                                                                                                                                              |
 
 All editorial tables share the `content_status` lifecycle
 (`draft | published | archived`) and carry their own `meta_title` /
@@ -97,6 +97,7 @@ Added where a real query needs them, not speculatively:
 - `programs (status, is_featured, order_index)` — the homepage query
 - `stories (status, published_at desc)` — the stories listing
 - `gallery_items (album_id, order_index)` — album contents
+- `gallery_items (status, is_featured, order_index)` — the public gallery query
 - `media (created_at desc)` — the media library's default view
 - `profiles (role)` — admin user lists
 
@@ -104,13 +105,16 @@ Added where a real query needs them, not speculatively:
 
 ## Migrations
 
-| File                  | Contents                                                        |
-| --------------------- | --------------------------------------------------------------- |
-| `0001_foundation.sql` | Extensions, enums, `set_updated_at()`, `profiles`, auth helpers |
-| `0002_content.sql`    | Media, configuration and editorial tables                       |
-| `0003_rls.sql`        | RLS policies + the consent publishing gate                      |
-| `0004_storage.sql`    | Buckets and storage policies                                    |
-| `seed.sql`            | Initial data mirroring `src/config/site.ts` (idempotent)        |
+| File                          | Contents                                                                      |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| `0001_foundation.sql`         | Extensions, enums, `set_updated_at()`, `profiles`, auth helpers               |
+| `0002_content.sql`            | Media, configuration and editorial tables                                     |
+| `0003_rls.sql`                | RLS policies + the consent publishing gate                                    |
+| `0004_storage.sql`            | Buckets and storage policies                                                  |
+| `0005_gallery_fields.sql`     | `gallery_items`: `photographer`, `category`, `is_featured` + index            |
+| `0006_gallery_item_audit.sql` | `gallery_items.updated_by` — the audit column every sibling table already had |
+| `0007_consent_message.sql`    | Rewords the consent refusal; editors now see it verbatim in the CMS           |
+| `seed.sql`                    | Initial data mirroring `src/config/site.ts` (idempotent)                      |
 
 Migrations are **append-only** — never edit a file that has run in production;
 add a new one. Name them `NNNN_description.sql` in order.

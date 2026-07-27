@@ -6,57 +6,66 @@ and community.
 
 ## Tech stack
 
-| Concern    | Choice                                    |
-| ---------- | ----------------------------------------- |
-| Framework  | Next.js 16 (App Router, React 19, RSC)    |
-| Language   | TypeScript 5 (strict)                     |
-| Styling    | Tailwind CSS v4 (CSS-first design tokens) |
-| Backend    | Supabase (wired up in Phase 3)            |
-| Animation  | Motion (`motion/react`)                   |
-| Validation | Zod + `@t3-oss/env-nextjs`                |
-| Tooling    | ESLint 9 · Prettier · Husky · lint-staged |
-| Hosting    | Vercel (planned)                          |
+| Concern    | Choice                                        |
+| ---------- | --------------------------------------------- |
+| Framework  | Next.js 16 (App Router, React 19, RSC)        |
+| Language   | TypeScript 5 (strict)                         |
+| Styling    | Tailwind CSS v4 (CSS-first design tokens)     |
+| Backend    | Supabase — code complete, not yet provisioned |
+| Forms      | React Hook Form + Zod                         |
+| Animation  | Motion (`motion/react`)                       |
+| Validation | Zod + `@t3-oss/env-nextjs`                    |
+| Tooling    | ESLint 9 · Prettier · Husky · lint-staged     |
+| Packages   | **pnpm only** (the npm lockfile was removed)  |
+| Hosting    | Vercel (planned)                              |
 
 ## Getting started
 
 ```bash
 # 1. Install dependencies
-npm install
+pnpm install
 
 # 2. Configure environment
 cp .env.example .env.local   # then fill in values as phases require
 
 # 3. Run the dev server
-npm run dev                  # http://localhost:3000
+pnpm dev                     # http://localhost:3000
 ```
 
 > Requires Node `>= 20.9` (see `.nvmrc` — the project is developed on Node 24).
+> **Use pnpm, not npm.** Dependency overrides that patch known CVEs live in
+> `pnpm-workspace.yaml`; installing with npm silently skips them.
 
 ## Scripts
 
-| Script                 | Purpose                        |
-| ---------------------- | ------------------------------ |
-| `npm run dev`          | Start the dev server           |
-| `npm run build`        | Production build               |
-| `npm run start`        | Serve the production build     |
-| `npm run lint`         | Lint with ESLint               |
-| `npm run lint:fix`     | Lint and auto-fix              |
-| `npm run typecheck`    | Type-check with `tsc --noEmit` |
-| `npm run format`       | Format with Prettier           |
-| `npm run format:check` | Verify formatting              |
+| Script              | Purpose                        |
+| ------------------- | ------------------------------ |
+| `pnpm dev`          | Start the dev server           |
+| `pnpm build`        | Production build               |
+| `pnpm start`        | Serve the production build     |
+| `pnpm lint`         | Lint with ESLint               |
+| `pnpm lint:fix`     | Lint and auto-fix              |
+| `pnpm typecheck`    | Type-check with `tsc --noEmit` |
+| `pnpm format`       | Format with Prettier           |
+| `pnpm format:check` | Verify formatting              |
 
 ## Project structure
 
 ```
 src/
+├── middleware.ts   # session refresh + coarse /admin auth gate
 ├── app/            # App Router: routes, layout, globals.css, robots, sitemap
-├── components/     # ui · brand · layout · sections   (built in later phases)
-├── config/         # env (validated) + site config
-├── content/        # content-as-code (later phases)
+│                   #   plus (admin) CMS, (auth) login, (dev) showcase
+├── components/     # ui · brand · layout · typography · motion · sections
+│                   #   plus admin/ — the CMS framework
+├── config/         # env (validated) · site config · admin nav
+├── content/        # content-as-code (homepage)
 ├── hooks/          # reusable client hooks
-├── lib/            # utils · seo · motion · supabase clients
+├── lib/            # utils · styles · seo · motion · supabase clients
 ├── providers/      # app-wide React providers
-└── types/          # domain + database types
+├── server/         # auth · db · repositories · actions · storage (server-only)
+├── types/          # domain + database types
+└── validation/     # Zod schemas — the single source of input truth
 ```
 
 ## Conventions
@@ -72,13 +81,15 @@ src/
 
 ## Documentation
 
-| Document                                       | Covers                                            |
-| ---------------------------------------------- | ------------------------------------------------- |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Frontend/tooling decisions and their rationale    |
-| [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md)         | Tokens, components, motion, accessibility         |
-| [`docs/BACKEND.md`](docs/BACKEND.md)           | Supabase setup, auth, roles, storage, patterns    |
-| [`docs/DATABASE.md`](docs/DATABASE.md)         | Schema, relationships, migrations                 |
-| [`docs/CMS.md`](docs/CMS.md)                   | Admin routing, layout, tables, forms, permissions |
+| Document                                       | Covers                                             |
+| ---------------------------------------------- | -------------------------------------------------- |
+| [`HANDOFF.md`](HANDOFF.md)                     | **Start here** — full project state and handoff    |
+| [`BOOTSTRAP.md`](BOOTSTRAP.md)                 | Primer for starting a fresh assistant conversation |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Frontend/tooling decisions and their rationale     |
+| [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md)         | Tokens, components, motion, accessibility          |
+| [`docs/BACKEND.md`](docs/BACKEND.md)           | Supabase setup, auth, roles, storage, patterns     |
+| [`docs/DATABASE.md`](docs/DATABASE.md)         | Schema, relationships, migrations                  |
+| [`docs/CMS.md`](docs/CMS.md)                   | Admin routing, layout, tables, forms, permissions  |
 
 > The backend is optional at runtime: without Supabase credentials the site
 > still builds and renders. See `docs/BACKEND.md` to provision it.

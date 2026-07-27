@@ -75,6 +75,22 @@ export function fromPostgrestError(error: PostgrestError): AppError {
       });
     case "42501": // insufficient_privilege (RLS)
       return new AppError("FORBIDDEN", "You don't have permission to do that.", { cause: error });
+    case "P0001": {
+      /**
+       * raise_exception — a deliberate rule from one of our own triggers.
+       *
+       * Every P0001 in this schema carries a message we wrote for a human to
+       * read (child-safety consent gate, role/activation guards), so passing it
+       * through tells the editor what actually happened. The generic fallback
+       * turned "this photo has no guardian consent" into "something went
+       * wrong", which is precisely the wrong thing to say about child safety.
+       *
+       * INVARIANT: any `raise exception` added to a migration must carry a
+       * message that is safe and meaningful to show a signed-in editor.
+       */
+      const message = error.message?.trim();
+      return new AppError("FORBIDDEN", message || "That change isn't allowed.", { cause: error });
+    }
     default:
       return new AppError("DATABASE", "Something went wrong saving your changes.", {
         cause: error,

@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { siteConfig } from "@/config/site";
 import { focusRing } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 type NavLinksProps = {
-  /** Items marked `available: false` are filtered out (route not built yet). */
-  items?: readonly { label: string; href: string; available?: boolean }[];
+  /**
+   * Navigation from the CMS. Items marked `available: false` are filtered out
+   * (route not built yet), and an empty result renders nothing at all.
+   */
+  items: readonly { label: string; href: string; available?: boolean }[];
   orientation?: "horizontal" | "vertical";
   /** Called after a link is chosen — used to close the mobile menu. */
   onNavigate?: () => void;
@@ -18,7 +20,7 @@ type NavLinksProps = {
 
 /** Primary navigation links with active-route highlighting. */
 export function NavLinks({
-  items = siteConfig.nav,
+  items,
   orientation = "horizontal",
   onNavigate,
   className,

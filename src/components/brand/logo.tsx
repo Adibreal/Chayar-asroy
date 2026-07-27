@@ -52,18 +52,31 @@ export function TreeMark({ className, ...props }: SVGProps<SVGSVGElement>) {
 type LogoProps = {
   /** `full` shows the wordmark; `mark` is the tree only. */
   variant?: "full" | "mark";
+  /** Organisation name from the CMS — used as the artwork's alt text. */
+  name?: string;
+  /** Bengali wordmark from the CMS, shown by the no-artwork fallback. */
+  nameBn?: string | null;
   className?: string;
 };
 
 /**
- * Brand lockup. Renders the **official logo artwork** when
- * `siteConfig.logo` is configured (see that file to enable); otherwise falls
- * back to the tree mark paired with the Bengali wordmark — the branding is
- * never shown in English.
+ * Brand lockup. Renders the **official logo artwork** when `siteConfig.logo`
+ * is configured; otherwise falls back to the tree mark paired with the Bengali
+ * wordmark — the branding is never shown in English.
+ *
+ * The artwork itself stays a repo asset (it is a committed file, not a database
+ * row), but the *names* come from the CMS so alt text and the Bengali wordmark
+ * follow site settings. Defaults keep the component usable standalone, e.g. in
+ * the design-system showcase.
  *
  * Presentational — wrap in a `<Link>` for navigation (the Header does this).
  */
-export function Logo({ variant = "full", className }: LogoProps) {
+export function Logo({
+  variant = "full",
+  name = siteConfig.fallback.name,
+  nameBn = siteConfig.fallback.nameBn,
+  className,
+}: LogoProps) {
   const asset = siteConfig.logo;
 
   if (asset) {
@@ -81,13 +94,13 @@ export function Logo({ variant = "full", className }: LogoProps) {
     // SVG later needs only the `siteConfig.logo.src` change: no edits here.
     if (asset.src.toLowerCase().endsWith(".svg")) {
       // eslint-disable-next-line @next/next/no-img-element -- intentional for a static, unoptimizable SVG logo
-      return <img src={asset.src} alt={siteConfig.name} className={sizing} />;
+      return <img src={asset.src} alt={name} className={sizing} />;
     }
 
     return (
       <Image
         src={asset.src}
-        alt={siteConfig.name}
+        alt={name}
         width={asset.width}
         height={asset.height}
         priority
@@ -101,7 +114,7 @@ export function Logo({ variant = "full", className }: LogoProps) {
       <TreeMark className="size-9 shrink-0 sm:size-10" />
       {variant === "full" ? (
         <span lang="bn" className="text-h5 leading-tight font-semibold text-foreground">
-          {siteConfig.nameBn}
+          {nameBn}
         </span>
       ) : null}
     </span>

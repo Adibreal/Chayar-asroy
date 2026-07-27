@@ -1,27 +1,35 @@
 import type { Metadata } from "next";
 
 import { siteConfig } from "@/config/site";
+import { getSiteContent, type SiteContent } from "@/server/content/site";
 
 /**
- * Build a page `Metadata` object from sensible, brand-consistent defaults.
- * Pages pass overrides (title, description, openGraph, …) which are shallow
- * -merged over the defaults.
+ * Page metadata built from CMS site settings.
  *
- * The root layout calls `buildMetadata()` with no arguments to establish the
- * site-wide baseline (title template, Open Graph, Twitter, robots).
+ * `buildMetadata` stays a pure mapping (content in → `Metadata` out) so it is
+ * trivially testable; `generateSiteMetadata` is the async wrapper pages call
+ * from `generateMetadata()`. Keeping them separate is what stops the fetch from
+ * being duplicated per page.
+ *
+ * `metadataBase` still comes from the environment: the canonical URL is a
+ * deployment fact, not something an editor should be able to change.
  */
-export function buildMetadata(overrides: Metadata = {}): Metadata {
+export function buildMetadata(site: SiteContent, overrides: Metadata = {}): Metadata {
+  const titleBase = site.tagline ? `${site.name} — ${site.tagline}` : site.name;
+  const title = site.seo.metaTitle ?? titleBase;
+  const description = site.seo.metaDescription ?? site.description ?? undefined;
+
   return {
     metadataBase: new URL(siteConfig.url),
     title: {
-      default: `${siteConfig.name} — ${siteConfig.tagline}`,
-      template: `%s · ${siteConfig.name}`,
+      default: title,
+      template: `%s · ${site.name}`,
     },
-    description: siteConfig.description,
-    applicationName: siteConfig.name,
-    authors: [{ name: siteConfig.name }],
-    creator: siteConfig.name,
-    publisher: siteConfig.name,
+    description,
+    applicationName: site.name,
+    authors: [{ name: site.name }],
+    creator: site.name,
+    publisher: site.name,
     keywords: [
       "Chayar Asroy",
       "Bangladesh nonprofit",
@@ -34,14 +42,14 @@ export function buildMetadata(overrides: Metadata = {}): Metadata {
       type: "website",
       locale: "en_US",
       url: siteConfig.url,
-      siteName: siteConfig.name,
-      title: `${siteConfig.name} — ${siteConfig.tagline}`,
-      description: siteConfig.description,
+      siteName: site.name,
+      title,
+      description,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${siteConfig.name} — ${siteConfig.tagline}`,
-      description: siteConfig.description,
+      title,
+      description,
     },
     robots: {
       index: true,
@@ -50,4 +58,10 @@ export function buildMetadata(overrides: Metadata = {}): Metadata {
     },
     ...overrides,
   };
+}
+
+/** Async wrapper for `generateMetadata()`. The fetch is request-cached. */
+export async function generateSiteMetadata(overrides: Metadata = {}): Promise<Metadata> {
+  const site = await getSiteContent();
+  return buildMetadata(site, overrides);
 }

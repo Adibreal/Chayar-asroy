@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { Logo } from "../brand/logo";
 import { PrimaryCta } from "../cta/primary-cta";
-import { siteConfig } from "@/config/site";
+import type { SiteContent } from "@/server/content/site";
 import { focusRing } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +16,11 @@ import { NavLinks } from "./nav-links";
  * Site header: sticky, transparent at the top and gaining a subtle blurred
  * background once scrolled. Desktop nav collapses into `MobileNav` on small
  * screens.
+ *
+ * A client component (it tracks scroll), so its CMS content is passed down from
+ * the root layout rather than fetched here.
  */
-export function Header() {
+export function Header({ site }: { site: SiteContent }) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -37,21 +40,17 @@ export function Header() {
       )}
     >
       <div className="container-page flex h-16 items-center justify-between gap-4 sm:h-20">
-        <Link
-          href="/"
-          aria-label={`${siteConfig.name} — home`}
-          className={cn("rounded-md", focusRing)}
-        >
-          <Logo />
+        <Link href="/" aria-label={`${site.name} — home`} className={cn("rounded-md", focusRing)}>
+          <Logo name={site.name} nameBn={site.nameBn} />
         </Link>
 
         <nav aria-label="Primary" className="hidden lg:block">
-          <NavLinks />
+          <NavLinks items={site.nav} />
         </nav>
 
         <div className="flex items-center gap-2">
-          <PrimaryCta size="sm" className="hidden sm:inline-flex" />
-          <MobileNav />
+          <PrimaryCta cta={site.primaryCta} size="sm" className="hidden sm:inline-flex" />
+          <MobileNav site={site} />
         </div>
       </div>
     </header>

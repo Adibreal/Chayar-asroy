@@ -1,7 +1,8 @@
 # CMS framework
 
-The admin application that every content editor is built inside. Phase 5B ships
-the **framework**; the editors themselves arrive in Phase 5C.
+The admin application that every content editor is built inside. Phase 5B
+shipped the **framework** (§1–§9); Phase 5C shipped the six **editors** (§10).
+Both are complete — but neither has ever run against a live database.
 
 > **Design philosophy:** the public site is warm and handcrafted; the CMS is
 > calm, dense and utilitarian. It is a tool, optimised for volunteers who were
@@ -174,7 +175,14 @@ no custom key handling) and `MediaCard`, which surfaces the two mistakes that
 matter: **missing alt text** and **consent not verified**. Both mirror
 `validation/media.ts`; the Server Action and bucket re-validate.
 
-The full media library is Phase 5C.
+The full media library shipped in Phase 5C at `/admin/media`
+(`media-library.tsx`), and `MediaPicker` reuses these primitives wherever a form
+needs to attach an image.
+
+> `ImageField` is deliberately **not** exported from `@/components/admin`.
+> Inside a form it must be bound to React Hook Form — use `ImageFormField`.
+> The raw control caused a "picked an image, saved nothing" bug; keeping it
+> unexported stops that recurring.
 
 ---
 

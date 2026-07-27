@@ -19,18 +19,37 @@ until it's configured.
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` — public, safe
      in the browser; protected by RLS.
    - `SUPABASE_SERVICE_ROLE_KEY` — **server only**, bypasses RLS.
-3. Run the migrations in order, then the seed:
+3. Initialise the CLI **before linking** — `supabase link` requires a
+   `supabase/config.toml`, which this repo does not commit:
 
 ```bash
+pnpm dlx supabase init
+pnpm dlx supabase login
 pnpm dlx supabase link --project-ref <ref>
 pnpm dlx supabase db push
 ```
 
+`db push` applies `migrations/0001`–`0006` in order. Run `seed.sql` afterwards
+(SQL editor, or `psql`) — it is idempotent and safe to re-run.
+
 4. Regenerate types so they can never drift from the schema:
 
+> ⚠️ **Never write the generated output over `src/types/database.ts`.** That
+> file is hand-authored and exports ~16 named types (`UserRole`, `Profile`,
+> `Program`, `Row<T>`, `TableName`, `InsertPayload`…) that **31 files import**.
+> `supabase gen types` emits only `Database` plus generic helpers, so
+> overwriting it breaks the whole backend and CMS at typecheck.
+
+Generate into a separate file and let `database.ts` derive from it:
+
 ```bash
-pnpm dlx supabase gen types typescript --project-id <ref> > src/types/database.ts
+pnpm dlx supabase gen types typescript --project-id <ref> > src/types/database.generated.ts
 ```
+
+Then rewire `src/types/database.ts` to re-export its named aliases from the
+generated `Database` (`export type Profile = Row<"profiles">`, etc.) and delete
+the hand-authored table shapes. The public API of `database.ts` — every name
+listed above — must stay identical, or those 31 imports break.
 
 5. Create the first user in the Supabase dashboard, then promote them:
 

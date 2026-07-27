@@ -39,7 +39,18 @@ export function GalleryManager({
 }) {
   const router = useRouter();
   const toast = useToast();
-  const [items, setItems] = useState(initialItems);
+  /**
+   * The server component is the single source of truth.
+   *
+   * This was `useState(initialItems)`, which froze the list at first mount:
+   * `router.refresh()` re-rendered the server component and passed fresh
+   * props, but `useState` ignores its initial value after mount, so a newly
+   * added image never appeared until a full page load. Deriving straight from
+   * props keeps the list honest and matches the project's no-client-data-store
+   * rule. (React's lint rule rightly forbids the props→state effect that would
+   * otherwise be reached for here — see HANDOFF §9.)
+   */
+  const items = initialItems;
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editing, setEditing] = useState<GalleryItemWithMedia | null>(null);
   const [isAdding, startAdd] = useTransition();
@@ -73,7 +84,7 @@ export function GalleryManager({
       return;
     }
     toast.success("Removed from the gallery");
-    setItems((current) => current.filter((entry) => entry.id !== item.id));
+    router.refresh();
   };
 
   return (

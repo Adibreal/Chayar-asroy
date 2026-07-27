@@ -1,21 +1,27 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import {
   Can,
+  ConfirmDialog,
   DataTable,
   type DataTableColumn,
   RowAction,
   RowActions,
+  RowActionSeparator,
   StatusBadge,
   TablePagination,
   TableToolbar,
+  useToast,
 } from "@/components/admin";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { canDelete as roleCanDelete } from "@/lib/permissions";
+import { deleteStory } from "@/server/actions/story-actions";
 import type { Story, UserRole } from "@/types/database";
 
 /** Stories list — same shared table framework as Programs. */
@@ -35,6 +41,22 @@ export function StoriesTable({
   role: UserRole;
 }) {
   const router = useRouter();
+  const toast = useToast();
+  // The row menu unmounts when it closes, which would take a nested dialog with
+  // it — so the confirm dialog is rendered once here and driven by state.
+  const [deleteTarget, setDeleteTarget] = useState<Story | null>(null);
+  // UX only — RLS is what actually enforces admin-only deletes.
+  const canDelete = roleCanDelete(role);
+
+  const handleDelete = async (story: Story) => {
+    const result = await deleteStory(story.id);
+    if (!result.ok) {
+      toast.error("Could not delete", result.error.message);
+      return;
+    }
+    toast.success("Story deleted");
+    router.refresh();
+  };
 
   const columns: DataTableColumn<Story>[] = [
     {
@@ -104,6 +126,18 @@ export function StoriesTable({
             >
               Edit
             </RowAction>
+            {canDelete ? (
+              <>
+                <RowActionSeparator />
+                <RowAction
+                  destructive
+                  icon={<Trash2 className="size-4" aria-hidden />}
+                  onSelect={() => setDeleteTarget(story)}
+                >
+                  Delete
+                </RowAction>
+              </>
+            ) : null}
           </RowActions>
         )}
         emptyState={
@@ -122,6 +156,25 @@ export function StoriesTable({
       />
 
       <TablePagination page={page} pageSize={pageSize} total={total} pageCount={pageCount} />
+
+      {/* One dialog, driven by the row menu's selection. */}
+      {deleteTarget ? (
+        <ConfirmDialog
+          key={deleteTarget.id}
+          open
+          onOpenChange={(next) => !next && setDeleteTarget(null)}
+          destructive
+          title="Delete this story?"
+          description={
+            <>
+              <strong>{deleteTarget.title}</strong> will be permanently removed. Consider archiving
+              it instead to keep it for reference.
+            </>
+          }
+          confirmLabel="Delete story"
+          onConfirm={() => handleDelete(deleteTarget)}
+        />
+      ) : null}
     </div>
   );
 }

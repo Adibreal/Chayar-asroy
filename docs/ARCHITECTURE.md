@@ -26,15 +26,21 @@ These are the newest versions the Next.js lint/type toolchain fully supports.
 Revisit when `eslint-config-next` bumps `typescript-eslint` to a TS 7 / ESLint
 10 compatible major.
 
-### Patched transitive dependencies (npm `overrides`)
+### Patched transitive dependencies (dependency `overrides`)
 
 `next` pins `sharp` (`^0.34.5`) and `postcss` (`8.4.31`) to ranges with known
-advisories (GHSA-f88m-g3jw-g9cj, GHSA-qx2v-qp2m-jg93). `npm audit`'s only
-proposed fix was to _downgrade Next to v9_ — unacceptable. Instead, `overrides`
-in `package.json` force the API-compatible patched versions
-(`sharp@^0.35.3`, `postcss@^8.5.22`), bringing `npm audit` to **0
-vulnerabilities** without touching Next. Remove the overrides once Next ships
-updated ranges.
+advisories (GHSA-f88m-g3jw-g9cj, GHSA-qx2v-qp2m-jg93). The audit's only proposed
+fix was to _downgrade Next to v9_ — unacceptable. Instead, overrides force the
+API-compatible patched versions (`sharp@^0.35.3`, `postcss@^8.5.23`), bringing
+`pnpm audit --prod` to **0 vulnerabilities** without touching Next. Remove them
+once Next ships updated ranges.
+
+The project later moved to **pnpm only**, and pnpm v11 does not read overrides
+from `package.json`. They therefore live in **`pnpm-workspace.yaml`**, with a
+mirrored npm `overrides` block kept in `package.json` so the project stays safe
+under either package manager — **edit both or neither**. `brace-expansion` is
+pinned _per major_ (`@1`, `@2`): the advisory names v5, but forcing v5 globally
+breaks minimatch v3, which ESLint depends on (verified, not assumed).
 
 ## Styling & design tokens
 
@@ -84,11 +90,22 @@ updated ranges.
 ## Content strategy
 
 - **Content-as-code first** (typed data / MDX), Supabase for _submissions_ only.
-  A CMS/admin is added later only if non-technical editors need it — avoiding an
-  unmaintained custom admin. See `src/content/README.md`.
+  A CMS/admin was to be added later only if non-technical editors needed it —
+  avoiding an unmaintained custom admin.
+- **That condition was met, and the migration is done.** The site is maintained
+  by rotating student volunteers, so a CMS was built in Phase 5B/5C
+  (`docs/CMS.md`) and the public site moved onto it in Phase 5D. `src/content/`
+  is retired; `src/config/site.ts` keeps only infrastructure. Because sections
+  already took their data via props, the swap was a data-source change rather
+  than a rewrite — exactly what this design anticipated.
+- Public reads live in `src/server/content/` and use a **cookie-less** Supabase
+  client, so pages stay statically rendered and are refreshed by the
+  `revalidatePath()` calls the CMS actions already make.
 
-## Deferred to later phases (intentionally not in Phase 2)
+## Deferred to later phases (status)
 
-Reusable UI components · homepage & pages · database schema & RLS · CMS/admin ·
-auth & middleware · analytics · full CSP · real content and consent-cleared
-photography.
+Written during Phase 2. Since delivered: reusable UI components · homepage ·
+database schema & RLS · CMS/admin · auth & middleware.
+
+**Still deferred:** inner pages · analytics · full nonce-based CSP · real
+content and consent-cleared photography.
