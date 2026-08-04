@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { toLines } from "@/lib/utils";
+
 /**
  * Primitives shared by every schema, so rules like "what is a valid slug"
  * are defined exactly once.
@@ -27,6 +29,21 @@ export const optionalText = (max = 2000) =>
     .max(max, `Must be ${max} characters or fewer.`)
     .optional()
     .transform((value) => (value === "" ? undefined : value));
+
+/**
+ * A short ordered list, edited as one item per line.
+ *
+ * Parses to `string[]`, which is what the `text[]` columns behind objectives
+ * and volunteer credits expect — so the form stays a plain textarea while the
+ * database keeps a real array.
+ */
+export const linesSchema = (max = 2000) =>
+  z
+    .string()
+    .trim()
+    .max(max, `Must be ${max} characters or fewer.`)
+    .optional()
+    .transform((value) => toLines(value));
 
 /** Accepts an internal path (`/about`, `#anchor`) or an absolute http(s) URL. */
 export const hrefSchema = z

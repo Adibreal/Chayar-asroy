@@ -23,9 +23,11 @@ import { siteSettingsSchema, type SiteSettingsInput } from "@/validation/content
 export function SettingsForm({
   settings,
   logoUrl,
+  campaignUrl,
 }: {
   settings: SiteSettings | null;
   logoUrl?: string | null;
+  campaignUrl?: string | null;
 }) {
   const defaultValues = {
     orgName: settings?.org_name ?? "Chayar Asroy",
@@ -42,6 +44,7 @@ export function SettingsForm({
     campaignEyebrow: settings?.campaign_eyebrow ?? "",
     campaignTitle: settings?.campaign_title ?? "",
     campaignDescription: settings?.campaign_description ?? "",
+    campaignMediaId: settings?.campaign_media_id ?? undefined,
     defaultMetaTitle: settings?.default_meta_title ?? "",
     defaultMetaDescription: settings?.default_meta_description ?? "",
   } as never;
@@ -117,7 +120,7 @@ export function SettingsForm({
 
       <FormSection
         title="Current campaign"
-        description="Shown in the highlighted band near the foot of the homepage."
+        description="Shown in the highlighted band near the foot of the homepage. The background photograph is heavily blurred under a dark wash, so warmth and colour matter far more than composition — leave it empty to use the brand placeholder."
       >
         <FormField name="campaignEyebrow" label="Eyebrow">
           {({ field, controlProps }) => (
@@ -130,6 +133,13 @@ export function SettingsForm({
         <FormField name="campaignDescription" label="Description">
           {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={3} />}
         </FormField>
+
+        <ImageFormField
+          name="campaignMediaId"
+          label="Background photograph"
+          folder="general"
+          initialUrl={campaignUrl}
+        />
       </FormSection>
 
       <FormSection

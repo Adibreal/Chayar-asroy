@@ -223,6 +223,7 @@ function EditMediaPanel({
   const [altText, setAltText] = useState(item?.alt_text ?? "");
   const [caption, setCaption] = useState(item?.caption ?? "");
   const [consent, setConsent] = useState(item?.consent_verified ?? false);
+  const [altError, setAltError] = useState<string | null>(null);
   const [isSaving, startSave] = useTransition();
 
   if (!item) return null;
@@ -237,9 +238,13 @@ function EditMediaPanel({
       });
 
       if (!result.ok) {
+        // The schema runs on the server; the panel just shows what it said, so
+        // there is no second copy of the rule to drift out of sync.
+        setAltError(result.error.fieldErrors?.altText?.[0] ?? null);
         toast.error("Could not save", result.error.message);
         return;
       }
+      setAltError(null);
       toast.success("Image details saved");
       onSaved({ ...item, ...result.data });
     });
@@ -265,13 +270,18 @@ function EditMediaPanel({
       <div className="flex flex-col gap-4">
         <Field
           label="Alt text"
-          description="Describe the image for people using a screen reader. Leave empty only if it is purely decorative."
+          required
+          {...(altError ? { error: altError } : {})}
+          description="Describe the image for people using a screen reader."
         >
           {(props) => (
             <Input
               {...props}
               value={altText}
-              onChange={(event) => setAltText(event.target.value)}
+              onChange={(event) => {
+                setAltText(event.target.value);
+                setAltError(null);
+              }}
               placeholder="Children painting at a weekend workshop"
             />
           )}

@@ -100,6 +100,40 @@ function growFromCenter(delay: number): Variants {
  * CMS-ready: everything is passed as data. Phase 5D swaps the source for
  * `impact_stats` without touching this file.
  */
+
+/**
+ * Column count at the widest breakpoint, capped at four.
+ *
+ * Beyond four the numbers get too narrow to read, so further metrics wrap onto
+ * a second row instead of shrinking.
+ */
+function columnsAtWidest(count: number): number {
+  return Math.min(count, 4);
+}
+
+/**
+ * Grid columns for a given number of metrics.
+ *
+ * The count is whatever the CMS publishes, so the track count follows it rather
+ * than assuming four — publishing three used to leave an empty fourth column
+ * that pushed the group off-centre. Written as whole class strings because
+ * Tailwind only generates classes it can see literally.
+ */
+function columnClasses(count: number): string {
+  switch (columnsAtWidest(count)) {
+    case 1:
+      return "grid-cols-1";
+    case 2:
+      return "grid-cols-1 sm:grid-cols-2";
+    case 3:
+      // Two up on a small tablet, three once there is room — so three metrics
+      // never leave a lone item stranded on a second row.
+      return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
+    default:
+      return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+  }
+}
+
 export function ImpactColumns({
   eyebrow,
   title,
@@ -210,12 +244,22 @@ export function ImpactColumns({
       {/* Columns */}
       {/* More air above the columns than before: the numbers are much larger
           now, so they need room to land rather than crowd the header. */}
-      <dl className="mt-16 grid grid-cols-1 gap-y-14 sm:grid-cols-2 sm:gap-y-16 lg:grid-cols-4 lg:gap-y-0">
+      <dl
+        className={cn(
+          "mt-16 grid gap-y-14 sm:gap-y-16",
+          columnClasses(entries.length),
+          // Only collapse the row gap while everything fits on one row.
+          entries.length <= columnsAtWidest(entries.length) && "lg:gap-y-0",
+        )}
+      >
         {entries.map((entry, index) => (
           <ImpactColumn
             key={entry.label}
             entry={entry}
-            isFirst={index === 0}
+            // Starts a row, so it must not carry a left separator. Derived from
+            // the real column count rather than "is it the very first", which
+            // put a stray divider at the start of any wrapped row.
+            isRowStart={index % columnsAtWidest(entries.length) === 0}
             delay={COLUMN_BASE + index * COLUMN_STAGGER}
           />
         ))}
@@ -253,11 +297,12 @@ export function ImpactColumns({
  */
 function ImpactColumn({
   entry,
-  isFirst,
+  isRowStart,
   delay,
 }: {
   entry: ImpactEntry;
-  isFirst: boolean;
+  /** First column of its row — carries no left separator. */
+  isRowStart: boolean;
   delay: number;
 }) {
   const [hasCounted, setHasCounted] = useState(false);
@@ -280,8 +325,8 @@ function ImpactColumn({
         // No `gap`: each element owns its own margin, so the number can sit
         // tight to its label while the icon keeps its distance above.
         "group relative flex flex-col items-center px-6 text-center",
-        // Hairline separators between columns; never before the first.
-        !isFirst && "lg:border-l lg:border-border",
+        // Hairline separators between columns; never at the start of a row.
+        !isRowStart && "lg:border-l lg:border-border",
       )}
     >
       {Icon ? (

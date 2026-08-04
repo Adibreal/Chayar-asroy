@@ -42,7 +42,17 @@ export const uploadFileSchema = z.object({
 
 export const updateMediaSchema = z.object({
   id: uuidSchema,
-  altText: z.string().trim().max(300),
+  /**
+   * Required here, but not on upload: files arrive in batches through the
+   * dropzone, and blocking that would push editors towards describing images
+   * they haven't looked at. The details form is where an image gets described,
+   * so it is the right gate — and the media grid already flags what is missing.
+   */
+  altText: z
+    .string()
+    .trim()
+    .min(1, "Describe this image for people using a screen reader.")
+    .max(300, "Keep alt text under 300 characters."),
   caption: optionalText(300),
   /** Guardian consent — gates publishing of identifiable children. */
   consentVerified: z.boolean(),

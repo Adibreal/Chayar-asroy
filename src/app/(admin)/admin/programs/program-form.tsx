@@ -9,6 +9,7 @@ import {
 } from "@/components/admin";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { fromLines } from "@/lib/utils";
 import { createProgram, updateProgram } from "@/server/actions/program-actions";
 import type { Program } from "@/types/database";
 import { programSchema, programUpdateSchema, type ProgramInput } from "@/validation/content";
@@ -39,7 +40,14 @@ export function ProgramForm({
     category: program?.category ?? "art",
     summary: program?.summary ?? "",
     body: program?.body ?? "",
+    activities: program?.activities ?? "",
     coverMediaId: program?.cover_media_id ?? undefined,
+    eventDate: program?.event_date ?? undefined,
+    location: program?.location ?? "",
+    participation: program?.participation ?? "",
+    // `text[]` in the database, one-per-line in the form.
+    objectives: fromLines(program?.objectives),
+    volunteers: fromLines(program?.volunteers),
     orderIndex: program?.order_index ?? 0,
     isFeatured: program?.is_featured ?? false,
     status: program?.status ?? "draft",
@@ -90,13 +98,73 @@ export function ProgramForm({
           {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={3} />}
         </FormField>
 
-        <FormField name="body" label="Full description" description="Markdown is supported.">
+        <FormField
+          name="body"
+          label="Overview"
+          description="The full story of the programme. Leave a blank line between paragraphs; wrap a word in *asterisks* for emphasis."
+        >
           {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={10} />}
+        </FormField>
+
+        <FormField
+          name="activities"
+          label="Activities"
+          description="What actually happened on the day. Same formatting as the overview."
+        >
+          {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={8} />}
+        </FormField>
+      </FormSection>
+
+      <FormSection
+        title="When and where"
+        description="Shown beneath the title on the programme page, and on its card."
+      >
+        <FormField name="eventDate" label="Date">
+          {({ field, controlProps }) => <Input {...field} {...controlProps} type="date" />}
+        </FormField>
+        <FormField name="location" label="Location">
+          {({ field, controlProps }) => (
+            <Input {...field} {...controlProps} placeholder="Mirpur, Dhaka" />
+          )}
+        </FormField>
+        <FormField
+          name="participation"
+          label="Participation"
+          description="Describe reach in your own words. Only figures you can evidence."
+        >
+          {({ field, controlProps }) => (
+            <Input {...field} {...controlProps} placeholder="45 children, 8 volunteers" />
+          )}
+        </FormField>
+      </FormSection>
+
+      <FormSection title="Objectives" description="What the programme set out to do. One per line.">
+        <FormField name="objectives" label="Objectives">
+          {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={5} />}
+        </FormField>
+      </FormSection>
+
+      <FormSection
+        title="Volunteers"
+        description="Credit the people who made it happen. One name per line."
+      >
+        <FormField name="volunteers" label="Volunteers">
+          {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={5} />}
         </FormField>
       </FormSection>
 
       <FormSection title="Cover image">
         <ImageFormField name="coverMediaId" label="Cover" folder="programs" initialUrl={coverUrl} />
+      </FormSection>
+
+      <FormSection
+        title="Programme gallery"
+        description="Add images in the Gallery editor and set their Programme to this one. They appear in the gallery at the bottom of the programme page."
+      >
+        <p className="text-small text-muted-foreground">
+          Images live in the shared media library, so the same photograph can be used here and
+          elsewhere without uploading it twice.
+        </p>
       </FormSection>
 
       <FormSection title="Publishing">

@@ -20,6 +20,9 @@ import {
 } from "@/server/actions/gallery-actions";
 import type { ContentStatus, UserRole } from "@/types/database";
 
+/** A programme an image can be attached to. */
+export type ProgramOption = { id: string; title: string };
+
 /**
  * Gallery editor.
  *
@@ -30,10 +33,13 @@ import type { ContentStatus, UserRole } from "@/types/database";
  */
 export function GalleryManager({
   initialItems,
+  programs,
   role,
   loadError,
 }: {
   initialItems: GalleryItemWithMedia[];
+  /** Programmes an image can belong to, for the edit panel. */
+  programs: ProgramOption[];
   role: UserRole;
   loadError: string | null;
 }) {
@@ -193,7 +199,12 @@ export function GalleryManager({
 
       {/* `key` remounts per item, so fields initialise from the new item
           instead of syncing through an effect. */}
-      <EditGalleryItemPanel key={editing?.id} item={editing} onClose={() => setEditing(null)} />
+      <EditGalleryItemPanel
+        key={editing?.id}
+        item={editing}
+        programs={programs}
+        onClose={() => setEditing(null)}
+      />
     </div>
   );
 }
@@ -201,9 +212,11 @@ export function GalleryManager({
 /** Caption, credit, category, ordering and publishing for one gallery entry. */
 function EditGalleryItemPanel({
   item,
+  programs,
   onClose,
 }: {
   item: GalleryItemWithMedia | null;
+  programs: ProgramOption[];
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -211,6 +224,7 @@ function EditGalleryItemPanel({
   const [caption, setCaption] = useState(item?.caption ?? "");
   const [photographer, setPhotographer] = useState(item?.photographer ?? "");
   const [category, setCategory] = useState(item?.category ?? "");
+  const [programId, setProgramId] = useState(item?.program_id ?? "");
   const [orderIndex, setOrderIndex] = useState(item?.order_index ?? 0);
   const [featured, setFeatured] = useState(item?.is_featured ?? false);
   const [status, setStatus] = useState<ContentStatus>(item?.status ?? "draft");
@@ -225,6 +239,7 @@ function EditGalleryItemPanel({
         caption: caption || undefined,
         photographer: photographer || undefined,
         category: category || undefined,
+        programId: programId || undefined,
         orderIndex,
         isFeatured: featured,
         status,
@@ -277,6 +292,27 @@ function EditGalleryItemPanel({
         <Field label="Category" description="Free text, e.g. Workshops or Community events.">
           {(props) => (
             <Input {...props} value={category} onChange={(e) => setCategory(e.target.value)} />
+          )}
+        </Field>
+
+        <Field
+          label="Programme"
+          description="Attach this image to a programme and it appears in that programme's gallery."
+        >
+          {(props) => (
+            <select
+              {...props}
+              value={programId}
+              onChange={(e) => setProgramId(e.target.value)}
+              className="h-11 w-full rounded-lg border border-border bg-background px-3 text-body"
+            >
+              <option value="">Not attached to a programme</option>
+              {programs.map((program) => (
+                <option key={program.id} value={program.id}>
+                  {program.title}
+                </option>
+              ))}
+            </select>
           )}
         </Field>
 

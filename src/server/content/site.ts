@@ -4,6 +4,9 @@ import { cache } from "react";
 
 import { siteConfig } from "@/config/site";
 import { createPublicClient } from "@/lib/supabase/public";
+import type { ImageAsset } from "@/types";
+
+import { toImageAsset } from "./media";
 
 /**
  * Site-wide content, read from the CMS.
@@ -36,7 +39,13 @@ export type SiteContent = {
   contactPhone: string | null;
   location: string | null;
   primaryCta: SiteCta | null;
-  campaign: { eyebrow: string | null; title: string; description: string | null } | null;
+  campaign: {
+    eyebrow: string | null;
+    title: string;
+    description: string | null;
+    /** Blurred behind the band. Null falls back to the brand placeholder. */
+    image: ImageAsset | null;
+  } | null;
   seo: { metaTitle: string | null; metaDescription: string | null };
   nav: SiteNavItem[];
   socials: SiteSocial[];
@@ -71,7 +80,10 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
   if (!supabase) return fallbackContent();
 
   const [settingsResult, navResult, socialsResult] = await Promise.all([
-    supabase.from("site_settings").select("*").maybeSingle(),
+    supabase
+      .from("site_settings")
+      .select("*, campaignMedia:campaign_media_id(bucket_id, storage_path, alt_text)")
+      .maybeSingle(),
     supabase
       .from("navigation_items")
       .select("label, href, is_available, order_index")
@@ -115,6 +127,7 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
           eyebrow: settings.campaign_eyebrow,
           title: settings.campaign_title,
           description: settings.campaign_description,
+          image: toImageAsset(supabase, settings.campaignMedia),
         }
       : null,
     seo: {

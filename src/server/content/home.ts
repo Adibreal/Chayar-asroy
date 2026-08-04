@@ -5,8 +5,12 @@ import { cache } from "react";
 import type { GalleryItemData } from "@/components/gallery";
 import type { ImpactEntry } from "@/components/impact";
 import { createPublicClient } from "@/lib/supabase/public";
-import type { ImageAsset, Program, Testimonial } from "@/types";
+import { toLines } from "@/lib/utils";
+import type { ImageAsset, Testimonial } from "@/types";
 import { homepageSchema } from "@/validation/content";
+
+import { toImageAsset } from "./media";
+import { getPrograms, type ProgramSummary } from "./programs";
 
 /**
  * Homepage content, read from the CMS.
@@ -23,12 +27,8 @@ import { homepageSchema } from "@/validation/content";
 
 const HOME_SLUG = "home";
 
-/** Rows carrying a media join, shaped by the `select` strings below. */
-type JoinedMedia = {
-  bucket_id: string;
-  storage_path: string;
-  alt_text: string;
-} | null;
+/** The homepage preview is a single row of three, by design. */
+const HOMEPAGE_PROGRAM_COUNT = 3;
 
 export type HomeCopy = {
   hero: {
@@ -66,7 +66,7 @@ export type HomeCopy = {
 export type HomeContent = {
   copy: HomeCopy | null;
   heroImage: ImageAsset | null;
-  featuredPrograms: Program[];
+  featuredPrograms: ProgramSummary[];
   galleryPreview: GalleryItemData[];
   testimonials: Testimonial[];
   impactStats: ImpactEntry[];
@@ -80,32 +80,6 @@ const EMPTY: HomeContent = {
   testimonials: [],
   impactStats: [],
 };
-
-/** Public URL for a joined media row. Synchronous — no extra round-trip. */
-function mediaUrl(
-  supabase: NonNullable<ReturnType<typeof createPublicClient>>,
-  media: JoinedMedia,
-): string | null {
-  if (!media) return null;
-  return supabase.storage.from(media.bucket_id).getPublicUrl(media.storage_path).data.publicUrl;
-}
-
-function toImageAsset(
-  supabase: NonNullable<ReturnType<typeof createPublicClient>>,
-  media: JoinedMedia,
-): ImageAsset | null {
-  const src = mediaUrl(supabase, media);
-  return src && media ? { src, alt: media.alt_text } : null;
-}
-
-/** Split a textarea into trimmed, non-empty lines. */
-function toLines(value: string | undefined | null): string[] {
-  if (!value) return [];
-  return value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-}
 
 /**
  * Shape `pages.content` into the page's view model.
@@ -171,22 +145,23 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
   const supabase = createPublicClient();
   if (!supabase) return EMPTY;
 
-  const [pageResult, programsResult, galleryResult, testimonialsResult, statsResult] =
+  const [pageResult, featuredPrograms, galleryResult, testimonialsResult, statsResult] =
     await Promise.all([
       supabase
         .from("pages")
-        .select("content, media:og_media_id(bucket_id, storage_path, alt_text)")
+        // `hero_media_id` is the hero photograph; `og_media_id` is the
+        // social-sharing card and is deliberately not read here.
+        .select("content, media:hero_media_id(bucket_id, storage_path, alt_text)")
         .eq("slug", HOME_SLUG)
         .eq("status", "published")
         .maybeSingle(),
-      supabase
-        .from("programs")
-        .select(
-          "slug, title, category, summary, order_index, media:cover_media_id(bucket_id, storage_path, alt_text)",
-        )
-        .eq("status", "published")
-        .eq("is_featured", true)
-        .order("order_index", { ascending: true }),
+      // Shared with /programs — one query shape and one mapper, so the card on
+      // the homepage and the card on the index can never drift apart.
+      //
+      // Capped at three: the homepage is a curated preview with a fixed
+      // three-card row, and "Explore all programs" leads to the full archive.
+      // Featuring a fourth programme in the CMS must not change that layout.
+      getPrograms({ featuredOnly: true, limit: HOMEPAGE_PROGRAM_COUNT }),
       supabase
         .from("gallery_items")
         .select("id, caption, media:media_id(bucket_id, storage_path, alt_text, consent_verified)")
@@ -209,7 +184,6 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
 
   for (const [name, result] of [
     ["pages", pageResult],
-    ["programs", programsResult],
     ["gallery_items", galleryResult],
     ["testimonials", testimonialsResult],
     ["impact_stats", statsResult],
@@ -218,20 +192,19 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
       console.error(`[content] homepage ${name} query failed:`, result.error.message);
   }
 
+  const copy = toCopy(pageResult.data?.content);
+
   return {
-    copy: toCopy(pageResult.data?.content),
-    heroImage: toImageAsset(supabase, pageResult.data?.media ?? null),
-    featuredPrograms: (programsResult.data ?? []).map((row) => {
-      const cover = toImageAsset(supabase, row.media);
-      return {
-        slug: row.slug,
-        title: row.title,
-        category: row.category,
-        summary: row.summary,
-        order: row.order_index,
-        ...(cover ? { coverImage: cover } : {}),
-      } satisfies Program;
-    }),
+    copy,
+    /*
+     * Alt text is required in the media library, so the fallback is a last
+     * resort for images uploaded before that rule existed — never a silent
+     * `alt=""` on the most prominent image on the site. The headline is the
+     * message the photograph carries, and it is editor-written rather than
+     * invented here.
+     */
+    heroImage: toImageAsset(supabase, pageResult.data?.media ?? null, copy?.hero.title),
+    featuredPrograms,
     galleryPreview: (galleryResult.data ?? []).flatMap((row) => {
       // Defence in depth: the database already refuses to publish an item
       // without consent, but the public site re-checks before rendering a face.

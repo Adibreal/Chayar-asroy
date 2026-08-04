@@ -28,6 +28,7 @@ export function CampaignCTA({ campaign, cta, className }: CampaignCTAProps) {
       eyebrow={campaign.eyebrow ?? undefined}
       title={campaign.title}
       description={campaign.description ?? undefined}
+      backgroundImage={campaign.image}
       actions={<PrimaryCta cta={cta} size="lg" variant="accent" />}
       className={className}
     />

@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   contentStatusSchema,
   hrefSchema,
+  linesSchema,
   optionalText,
   orderIndexSchema,
   requiredText,
@@ -23,8 +24,22 @@ export const programSchema = z.object({
   title: requiredText(120),
   category: z.enum(["art", "education", "community"]),
   summary: requiredText(300),
+  /** The overview — the full story of the programme. */
   body: optionalText(20000),
+  /** What actually happened on the day, told as its own passage. */
+  activities: optionalText(20000),
   coverMediaId: uuidSchema.optional(),
+
+  // Facts of the event, shown beneath the title on the programme page.
+  eventDate: z.iso.date().optional(),
+  location: optionalText(120),
+  /** Free text — "45 children, 8 volunteers". Never an invented number. */
+  participation: optionalText(120),
+
+  // Short ordered lists, collected one-per-line (see `toLines`).
+  objectives: linesSchema(2000),
+  volunteers: linesSchema(2000),
+
   orderIndex: orderIndexSchema.default(0),
   isFeatured: z.boolean().default(false),
   status: contentStatusSchema.default("draft"),
@@ -58,6 +73,8 @@ export const galleryAlbumSchema = z.object({
 
 export const galleryItemSchema = z.object({
   albumId: uuidSchema.optional(),
+  /** Owning programme — drives the gallery on that programme's page. */
+  programId: uuidSchema.optional(),
   mediaId: uuidSchema,
   caption: optionalText(300),
   photographer: optionalText(120),
@@ -122,6 +139,8 @@ export const siteSettingsSchema = z.object({
   campaignEyebrow: optionalText(60),
   campaignTitle: optionalText(160),
   campaignDescription: optionalText(400),
+  /** Background photograph for the campaign band; blurred behind a dark wash. */
+  campaignMediaId: uuidSchema.optional(),
   defaultMetaTitle: optionalText(70),
   defaultMetaDescription: optionalText(160),
   defaultOgMediaId: uuidSchema.optional(),
@@ -142,6 +161,11 @@ export const homepageSchema = z.object({
   heroEyebrow: optionalText(80),
   heroTitle: requiredText(120),
   heroDescription: optionalText(400),
+  /**
+   * Persisted to the `pages.hero_media_id` **column**, not into `content` —
+   * `saveHomePage` lifts it out before the rest is spread into the jsonb. Media
+   * relationships stay real foreign keys so PostgREST can embed them.
+   */
   heroMediaId: uuidSchema.optional(),
   heroSecondaryCtaLabel: optionalText(40),
   heroSecondaryCtaHref: hrefSchema.optional(),
@@ -190,6 +214,12 @@ export const homepageSchema = z.object({
   // SEO
   metaTitle: optionalText(70),
   metaDescription: optionalText(160),
+  /**
+   * The social-sharing card — a different image from the hero, for a different
+   * surface. **No field in the homepage editor submits this today**, so
+   * `saveHomePage` deliberately leaves `og_media_id` untouched when it is
+   * absent rather than writing `null` over whatever is there.
+   */
   ogMediaId: uuidSchema.optional(),
 });
 

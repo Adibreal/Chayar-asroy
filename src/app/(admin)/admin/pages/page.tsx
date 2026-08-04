@@ -15,8 +15,7 @@ export default async function PagesPage() {
   await requireEditor();
   const page = await getHomePage();
 
-  const content = (page?.content ?? {}) as { heroMediaId?: string };
-  const heroUrl = await getMediaUrl(content.heroMediaId);
+  const heroUrl = await getMediaUrl(page?.hero_media_id ?? undefined);
 
   return (
     <>

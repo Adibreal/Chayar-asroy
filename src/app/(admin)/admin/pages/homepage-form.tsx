@@ -26,7 +26,8 @@ export function HomepageForm({ page, heroUrl }: { page: Page | null; heroUrl?: s
     heroEyebrow: content.heroEyebrow ?? "",
     heroTitle: content.heroTitle ?? "",
     heroDescription: content.heroDescription ?? "",
-    heroMediaId: content.heroMediaId ?? undefined,
+    // A column, not a `content` key — media relationships are real foreign keys.
+    heroMediaId: page?.hero_media_id ?? undefined,
     heroSecondaryCtaLabel: content.heroSecondaryCtaLabel ?? "",
     heroSecondaryCtaHref: content.heroSecondaryCtaHref ?? "",
     missionEyebrow: content.missionEyebrow ?? "",

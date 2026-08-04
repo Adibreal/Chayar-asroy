@@ -9,13 +9,7 @@ import { attempt, type Result } from "@/server/shared/result";
 import type { Page } from "@/types/database";
 import { homepageSchema } from "@/validation/content";
 
-/**
- * Slug of the singleton homepage row.
- *
- * Deliberately NOT exported: every export of a `"use server"` module must be an
- * async function, and a stray `const` export silently voids the whole module.
- */
-const HOME_SLUG = "home";
+import { buildHomePageRow, HOME_SLUG } from "./home-page-row";
 
 /** The homepage row, or `null` before it has been created. */
 export async function getHomePage(): Promise<Page | null> {
@@ -25,8 +19,13 @@ export async function getHomePage(): Promise<Page | null> {
 /**
  * Save homepage content.
  *
- * Hero and mission copy live in `content` (jsonb); SEO uses the row's own
- * columns. Upserts, so the first save creates the row.
+ * Copy lives in `content` (jsonb); SEO and media use the row's own columns.
+ * Upserts, so the first save creates the row.
+ *
+ * **Media relationships are columns, never jsonb.** `heroMediaId` is pulled out
+ * of the payload before the rest is spread into `content`, so the picked image
+ * lands in `hero_media_id` where PostgREST can embed it — the public site reads
+ * it exactly the way it reads a programme's cover.
  */
 export async function saveHomePage(input: unknown): Promise<Result<Page>> {
   return attempt(async () => {
@@ -39,18 +38,7 @@ export async function saveHomePage(input: unknown): Promise<Result<Page>> {
       });
     }
 
-    const { metaTitle, metaDescription, ogMediaId, ...content } = parsed.data;
-
-    const row = {
-      slug: HOME_SLUG,
-      title: "Homepage",
-      content,
-      meta_title: metaTitle ?? null,
-      meta_description: metaDescription ?? null,
-      og_media_id: ogMediaId ?? null,
-      status: "published" as const,
-      updated_by: user.id,
-    };
+    const row = buildHomePageRow(parsed.data, user.id);
 
     const existing = await getHomePage();
     const saved = existing

@@ -52,3 +52,12 @@ next-env.d.ts
 
 # Supabase CLI scratch state (link metadata, pooler URLs — machine-local)
 supabase/.temp/
+
+# Event photography staged for upload.
+#
+# Photographs never belong in git. They are children's images, and the consent
+# gate that protects them (`media.consent_verified`, enforced by a database
+# trigger) only exists once they are in the media library — a copy in the repo
+# is a copy outside that protection, permanently, in every clone and in the
+# history. Upload them through the CMS and delete the local archives.
+/Gallery/

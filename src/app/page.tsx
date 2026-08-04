@@ -64,7 +64,7 @@ export default async function HomePage() {
               <Reveal>
                 <HeroContent>
                   {copy.hero.eyebrow ? <HeroBadge>{copy.hero.eyebrow}</HeroBadge> : null}
-                  <Heading level={1} size="hero">
+                  <Heading level={1} size="hero" className="text-antique-gold">
                     {copy.hero.title}
                   </Heading>
                   {copy.hero.description ? (
@@ -127,27 +127,33 @@ export default async function HomePage() {
         </Section>
       ) : null}
 
-      {/* 3 · TRUST — Featured programs */}
+      {/* 3 · TRUST — Featured programs
+          Stays a curated preview: only featured programmes, unchanged card
+          count. The centred CTA below leads to the full index. */}
       {home.featuredPrograms.length > 0 ? (
         <Section surface="muted" spacing="lg">
           <Container>
-            <FeaturedProjects
-              eyebrow={copy?.programs.eyebrow ?? undefined}
-              title={copy?.programs.title ?? undefined}
-              description={copy?.programs.description ?? undefined}
-              projects={home.featuredPrograms}
-              detailsAvailable={isAvailable("/programs")}
-              action={
-                isAvailable("/programs") ? (
-                  <Button asChild variant="outline">
-                    <Link href="/programs">
-                      View all programs
-                      <ArrowRight className="size-4" aria-hidden />
-                    </Link>
-                  </Button>
-                ) : null
-              }
-            />
+            <Stack gap="xl">
+              <FeaturedProjects
+                eyebrow={copy?.programs.eyebrow ?? undefined}
+                title={copy?.programs.title ?? undefined}
+                description={copy?.programs.description ?? undefined}
+                projects={home.featuredPrograms}
+                detailsAvailable={isAvailable("/programs")}
+              />
+              {isAvailable("/programs") ? (
+                <Reveal>
+                  <div className="flex justify-center">
+                    <Button asChild variant="outline" size="lg">
+                      <Link href="/programs">
+                        Explore all programs
+                        <ArrowRight className="size-4" aria-hidden />
+                      </Link>
+                    </Button>
+                  </div>
+                </Reveal>
+              ) : null}
+            </Stack>
           </Container>
         </Section>
       ) : null}

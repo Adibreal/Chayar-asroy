@@ -15,6 +15,11 @@ export interface Program {
   body?: string;
   coverImage?: ImageAsset;
   order: number;
+  /** Calendar day the programme ran, ISO `YYYY-MM-DD`. */
+  eventDate?: string | null;
+  location?: string | null;
+  /** Free text, e.g. "45 children, 8 volunteers". */
+  participation?: string | null;
 }
 
 /** A published story / testimonial. */

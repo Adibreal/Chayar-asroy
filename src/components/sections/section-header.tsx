@@ -48,9 +48,13 @@ export function SectionHeader({
             {eyebrow}
           </Text>
         ) : null}
-        <Heading level={titleLevel} size={titleSize}>
-          {title}
-        </Heading>
+        {/* Guarded: a CMS-driven section may legitimately have no title, and an
+            empty <h2> is both a layout gap and a WCAG "empty heading" failure. */}
+        {title ? (
+          <Heading level={titleLevel} size={titleSize}>
+            {title}
+          </Heading>
+        ) : null}
         {description ? (
           <Text variant="lead" tone="muted">
             {description}

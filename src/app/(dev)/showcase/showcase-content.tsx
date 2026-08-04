@@ -520,6 +520,8 @@ export function ShowcaseContent() {
           className="mb-8"
         />
         <FeaturedProjects
+          eyebrow="Featured Programs"
+          title="Turning ideas into impact"
           projects={filteredPrograms}
           description="A few of the programs bringing creativity to children."
           action={<Button variant="outline">View all projects</Button>}

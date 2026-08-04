@@ -82,6 +82,7 @@ export type Database = {
           media_id: string
           order_index: number
           photographer: string | null
+          program_id: string | null
           status: Database["public"]["Enums"]["content_status"]
           updated_at: string
           updated_by: string | null
@@ -96,6 +97,7 @@ export type Database = {
           media_id: string
           order_index?: number
           photographer?: string | null
+          program_id?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           updated_at?: string
           updated_by?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           media_id?: string
           order_index?: number
           photographer?: string | null
+          program_id?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           updated_at?: string
           updated_by?: string | null
@@ -127,6 +130,13 @@ export type Database = {
             columns: ["media_id"]
             isOneToOne: false
             referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gallery_items_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
           {
@@ -278,6 +288,7 @@ export type Database = {
         Row: {
           content: Json
           created_at: string
+          hero_media_id: string | null
           id: string
           meta_description: string | null
           meta_title: string | null
@@ -292,6 +303,7 @@ export type Database = {
         Insert: {
           content?: Json
           created_at?: string
+          hero_media_id?: string | null
           id?: string
           meta_description?: string | null
           meta_title?: string | null
@@ -306,6 +318,7 @@ export type Database = {
         Update: {
           content?: Json
           created_at?: string
+          hero_media_id?: string | null
           id?: string
           meta_description?: string | null
           meta_title?: string | null
@@ -318,6 +331,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pages_hero_media_id_fkey"
+            columns: ["hero_media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pages_og_media_id_fkey"
             columns: ["og_media_id"]
@@ -369,15 +389,20 @@ export type Database = {
       }
       programs: {
         Row: {
+          activities: string | null
           body: string | null
           category: Database["public"]["Enums"]["program_category"]
           cover_media_id: string | null
           created_at: string
+          event_date: string | null
           id: string
           is_featured: boolean
+          location: string | null
           meta_description: string | null
           meta_title: string | null
+          objectives: string[]
           order_index: number
+          participation: string | null
           published_at: string | null
           slug: string
           status: Database["public"]["Enums"]["content_status"]
@@ -385,17 +410,23 @@ export type Database = {
           title: string
           updated_at: string
           updated_by: string | null
+          volunteers: string[]
         }
         Insert: {
+          activities?: string | null
           body?: string | null
           category: Database["public"]["Enums"]["program_category"]
           cover_media_id?: string | null
           created_at?: string
+          event_date?: string | null
           id?: string
           is_featured?: boolean
+          location?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          objectives?: string[]
           order_index?: number
+          participation?: string | null
           published_at?: string | null
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
@@ -403,17 +434,23 @@ export type Database = {
           title: string
           updated_at?: string
           updated_by?: string | null
+          volunteers?: string[]
         }
         Update: {
+          activities?: string | null
           body?: string | null
           category?: Database["public"]["Enums"]["program_category"]
           cover_media_id?: string | null
           created_at?: string
+          event_date?: string | null
           id?: string
           is_featured?: boolean
+          location?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          objectives?: string[]
           order_index?: number
+          participation?: string | null
           published_at?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]
@@ -421,6 +458,7 @@ export type Database = {
           title?: string
           updated_at?: string
           updated_by?: string | null
+          volunteers?: string[]
         }
         Relationships: [
           {
@@ -443,6 +481,7 @@ export type Database = {
         Row: {
           campaign_description: string | null
           campaign_eyebrow: string | null
+          campaign_media_id: string | null
           campaign_title: string | null
           contact_email: string | null
           contact_phone: string | null
@@ -467,6 +506,7 @@ export type Database = {
         Insert: {
           campaign_description?: string | null
           campaign_eyebrow?: string | null
+          campaign_media_id?: string | null
           campaign_title?: string | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -491,6 +531,7 @@ export type Database = {
         Update: {
           campaign_description?: string | null
           campaign_eyebrow?: string | null
+          campaign_media_id?: string | null
           campaign_title?: string | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -513,6 +554,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "site_settings_campaign_media_id_fkey"
+            columns: ["campaign_media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "site_settings_default_og_media_id_fkey"
             columns: ["default_og_media_id"]

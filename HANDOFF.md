@@ -1,8 +1,10 @@
 # Chayar Asroy — Project Handoff
 
 Everything a new contributor (or a new conversation) needs to continue this
-project. Reflects the state as of **26 July 2026**, re-audited against the
-working tree on that date — every claim below was checked, not assumed.
+project. Reflects the state as of **4 August 2026**, re-audited against the
+working tree and the live database on that date — every claim below was checked,
+not assumed. Where something could not be checked (anything requiring real
+pixels), it is called out as unverified rather than asserted.
 
 ---
 
@@ -20,37 +22,58 @@ solutions over clever ones.
 
 ## 2. Current state
 
-|                              | Status                                                                        |
-| ---------------------------- | ----------------------------------------------------------------------------- |
-| Public homepage              | ✅ Built, refined, validated (8 sections, CMS-driven)                         |
-| Design system                | ✅ Complete + documented                                                      |
-| SEO surface                  | ✅ `buildMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`                   |
-| Version control              | ✅ Committed and pushed to GitHub (`main`)                                    |
-| Backend platform (Supabase)  | ✅ Provisioned and **validated against the live project**                     |
-| CMS framework + 6 editors    | ✅ Built and **validated end-to-end in the browser** (Phase 5D.0)             |
-| Inner public pages           | ❌ Not built (Our Journey, Programs, Gallery, Stories, Get Involved, Contact) |
-| Public site reading from CMS | ✅ **Phase 5D** — homepage and shell read live CMS data                       |
+|                              | Status                                                               |
+| ---------------------------- | -------------------------------------------------------------------- |
+| Public homepage              | ✅ 8 sections, entirely CMS-driven                                   |
+| Design system                | ✅ Complete + documented                                             |
+| SEO surface                  | ✅ `generateSiteMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`   |
+| Backend platform (Supabase)  | ✅ Provisioned, migrations `0001`–`0011`, validated live             |
+| CMS framework + 6 editors    | ✅ Validated end-to-end in the browser                               |
+| Public site reading from CMS | ✅ Phase 5D — homepage, shell and programmes                         |
+| **Programs archive**         | ✅ `/programs` + `/programs/[slug]` with per-programme galleries     |
+| **Real programme content**   | ✅ 4 programmes imported verbatim from the Event Documentation PDF   |
+| **Real impact figures**      | ✅ 80 children · 20 volunteers · 4 programmes                        |
+| **Hero image from the CMS**  | ✅ `pages.hero_media_id` (migration `0011`) — see §6                 |
+| Other inner pages            | ❌ Our Journey, Gallery, Stories, Get Involved, Contact              |
+| Photography                  | ⚠️ **1 image** (the homepage hero). Everything else is a placeholder |
 
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy`
-**Git:** branch `main`, working tree **clean**, 244 tracked files.
-One commit: `3e85df2` — _feat: complete homepage, CMS architecture, and
-refinements_ (26 Jul 2026). Pushed to and in sync with `origin` →
+**Git:** branch `main`, in sync with `origin` →
 `https://github.com/Adibreal/Chayar-asroy.git`.
+Last commit `9388cbb` — _feat(cms): connect public site to Supabase CMS_.
+
+> ⚠️ **There is uncommitted work.** Everything after `9388cbb` — the programmes
+> feature, migrations `0009`–`0011`, the PDF import, the UI refinements and the
+> hero-image fix — is in the working tree but **not committed**. Committing it
+> should be the first action of the next session.
 
 > The remote is a **personal** GitHub account. Moving it to an org-owned
 > account is a launch task (see §8).
 
-**Validation — all green (re-verified 26 July 2026):**
+**Validation — all green:**
 
 ```bash
 pnpm lint         # ✅
 pnpm typecheck    # ✅
-pnpm build        # ✅ 18 routes — 6 static, 12 dynamic (all /admin + login)
-pnpm audit --prod # ✅ no known vulnerabilities
+pnpm build        # ✅ 20 routes — 7 static, 1 SSG (/programs/[slug]), 12 dynamic
+pnpm exec prettier --check "**/*.{ts,tsx,md,json,mjs}"  # ✅
 ```
 
-The build emits one warning: Next 16 deprecates the `middleware` file
-convention in favour of `proxy`. See §9.
+The build emits one warning: Next 16 deprecates the `middleware` file convention
+in favour of `proxy`. See §9.
+
+> 🔴 **`pnpm audit --prod` is no longer clean.** A new advisory landed since the
+> last check: **`fast-uri` < 3.1.5, high** — host confusion via a backslash
+> authority introducer ([GHSA-7p8r-x3mc-p8w7](https://github.com/advisories/GHSA-7p8r-x3mc-p8w7)),
+> reached through `@hookform/resolvers > ajv > fast-uri`. No dependency of ours
+> changed; the advisory did. Nothing in the repo passes user input to `fast-uri`
+> (it is `ajv`'s URI parser for `$ref` resolution in JSON Schema), so this is not
+> an active exploit path here — but it is production-reachable and should be
+> closed with the project's existing override mechanism: add `fast-uri: ^3.1.5`
+> to `overrides` in **`pnpm-workspace.yaml`** _and_ the mirrored `overrides`
+> block in `package.json` (§9), then `pnpm install` and re-run the gate. Left
+> unapplied deliberately — it changes the lockfile, so it belongs in its own
+> commit rather than buried in a documentation update.
 
 ---
 
@@ -81,6 +104,7 @@ src/
 ├── app/
 │   ├── layout.tsx            shell: Header + <main> + Footer
 │   ├── page.tsx              public homepage
+│   ├── programs/             page.tsx (archive) · [slug]/page.tsx (detail)
 │   ├── not-found.tsx         public 404
 │   ├── globals.css           the three token layers live here
 │   ├── icon.svg              favicon (hand-authored tree mark)
@@ -97,11 +121,13 @@ src/
 ├── config/     env.ts (validated), site.ts (infrastructure only), admin-nav.ts
 ├── hooks/      use-media-query, use-prefers-reduced-motion
 ├── providers/  motion-provider (MotionConfig reducedMotion="user")
-├── lib/        utils(cn), styles, polymorphic, motion/, seo/,
+├── lib/        utils(cn, toLines/fromLines, formatEventDate), styles,
+│               polymorphic, motion/, seo/,
 │               supabase/ (client, server, public, middleware, admin, config),
 │               permissions
 ├── server/     auth, db, repositories, actions, storage, shared, media-url
-│   └── content/  site.ts, home.ts — the PUBLIC read layer (Phase 5D)
+│   └── content/  site.ts · home.ts · programs.ts · media.ts
+│                 the PUBLIC read layer — every public page reads via here
 ├── types/      database.ts (derived), database.generated.ts, content.ts
 └── validation/ common, auth, media, content  (Zod — single source of truth)
 
@@ -110,7 +136,10 @@ supabase/migrations/  0001 foundation · 0002 content · 0003 RLS
                       0006 gallery_items.updated_by (audit)
                       0007 human-readable consent refusal message
                       0008 impact_stats.icon
-supabase/seed.sql     idempotent starter data + homepage placeholder content
+                      0009 programme story fields + gallery_items.program_id
+                      0010 site_settings.campaign_media_id
+                      0011 pages.hero_media_id (+ backfill out of jsonb)
+supabase/seed.sql     idempotent starter data + placeholder homepage content
 
 scripts/  validate-backend.mjs     seed, anon RLS, storage, consent gate
           validate-auth-roles.mjs  signed-in RLS per role, audit column
@@ -128,11 +157,32 @@ node --env-file=.env.local scripts/validate-auth-roles.mjs <admin-email>
 PostgREST embeds (`media:media_id(…)`) type-check. Regenerate after every
 migration.
 
+**Public routes built:** `/` (homepage) · `/programs` (archive) ·
+`/programs/[slug]` (programme story). `/programs/[slug]` is prerendered via
+`generateStaticParams()`, so every published programme is static HTML.
+
 **Admin routes built:** `/admin` (dashboard) · `/admin/pages` (homepage) ·
 `/admin/programs` (+ `new`, `[id]`) · `/admin/stories` (+ `new`, `[id]`) ·
 `/admin/gallery` · `/admin/media` · `/admin/settings`. Gallery and Media are
 single-screen managers (panel-based), which is why they have no `new`/`[id]`
 child routes.
+
+### The programmes feature
+
+| Surface            | Behaviour                                                                   |
+| ------------------ | --------------------------------------------------------------------------- |
+| Homepage           | Exactly **3** featured programmes + "Explore all programs" CTA              |
+| `/programs`        | **Every** published programme — the complete archive, nothing hidden        |
+| `/programs/[slug]` | Hero beside the facts, one continuous "Event overview", volunteers, gallery |
+
+The three-card homepage cap is `getPrograms({ featuredOnly: true, limit: 3 })`
+— enforced in code, so featuring a fourth programme in the CMS never changes
+that layout. `/programs` passes no limit.
+
+A programme's gallery is `gallery_items.program_id` pointing at the **existing
+media library**: no second image store, and it inherits the child-safety consent
+trigger, so an unconsented photograph cannot appear on a programme page either.
+Attach images in the Gallery editor by setting their _Programme_.
 
 **Docs:** `BOOTSTRAP.md` (fresh-conversation primer), `README.md`,
 `DESIGN_SYSTEM.md`, `docs/ARCHITECTURE.md`, `docs/BACKEND.md`,
@@ -184,21 +234,81 @@ the browser (RHF) and in the Server Action, so they cannot disagree.
 **Table state lives in the URL** (`?q=&sort=&page=`) — shareable, bookmarkable,
 back-button-correct, and readable by Server Components. No client data store.
 
-**Route availability is config.** `siteConfig.nav` items carry
-`available: false`; `NavLinks` filters them and `isRouteAvailable()` gates
-section CTAs. Result: **zero dead internal links** while pages are unbuilt. Flip
-the flags as pages ship.
+**Route availability is data.** `navigation_items.is_available` drives it;
+`createRouteAvailability(site.nav)` builds a predicate once per render and it is
+passed down. Result: **zero dead internal links** while pages are unbuilt. Flip
+the flag in the CMS as each page ships — `/programs` is the only one currently
+available.
 
-**One configurable primary CTA.** `siteConfig.primaryCta` (`label`, `href`,
-`enabled`) is rendered by `<PrimaryCta>` and reused by navbar, hero, mobile
-drawer and campaign band. The org is _not_ always recruiting, so this is a
-campaign slot, not a permanent "Become a Volunteer".
+**One configurable primary CTA.** `primary_cta_*` in Site settings, rendered by
+`<PrimaryCta>` and reused by navbar, hero, mobile drawer, campaign band and the
+programme pages. The org is _not_ always recruiting, so this is a campaign slot,
+not a permanent "Become a Volunteer". Its href is `/#how-to-help` — root-relative
+so it works from every page, not just the homepage.
 
 **Child safety is enforced in Postgres.** A gallery item cannot be published
-unless its media has `consent_verified` — a trigger, not a UI convention.
+unless its media has `consent_verified` — a trigger, not a UI convention. The
+public content layer re-checks it before rendering a face, on both the homepage
+preview and programme galleries.
 
-**Markdown, not a WYSIWYG**, for story bodies: no heavy dependency, portable
-content, no markup the public site can't style.
+**Prose, not Markdown, on programme pages.** No Markdown renderer is installed.
+`<Prose>` splits on blank lines and supports `*emphasis*`, which is the whole
+vocabulary. This was a deliberate call not to add a parser dependency to a
+project that pins deliberately, and it matches the "reads like a story, not a
+blog post" brief. **`<Prose>` is the single component to swap** if richer
+formatting is ever wanted — see §9.
+
+**The CMS stores the programme story in three columns; the page joins them.**
+`body` (overview), `activities` and `objectives[]` are separate because they are
+easier to write and revise that way, but the source documentation was written as
+one narrative, so `getProgramBySlug()` composes a `narrative` field and the page
+renders a single "Event overview". Rejoining `objectives` reproduces the source
+paragraph exactly. Kept split deliberately — see the trade-off note in §8.
+
+**Media relationships are columns; `content` jsonb holds copy only.** A page's
+images are real foreign keys — `pages.hero_media_id` for the photograph,
+`pages.og_media_id` for the social-sharing card — exactly like
+`programs.cover_media_id` and `stories.hero_media_id`. This is not stylistic:
+PostgREST can only embed (`media:hero_media_id(...)`) through a real
+relationship, so an id buried in jsonb cannot be joined, and the public site
+would need a second round trip to resolve it. `saveHomePage` therefore lifts
+`heroMediaId` out of the payload before the rest is spread into `content`, and
+`buildHomePageRow` (a pure function, split out the way `buildMetadata` is split
+from `generateSiteMetadata`) is where that mapping lives so it can be verified
+without a session. Migration `0011` added the column and backfilled it out of
+the jsonb key the editor used to write. See the gotcha in §9 for what went
+wrong before.
+
+**A form must not write columns it does not edit.** The homepage editor has no
+social-sharing image field, so `saveHomePage` omits `og_media_id` from its row
+entirely rather than writing `ogMediaId ?? null` — which used to clear the
+column on every save. Absent means "not mine to touch"; only a supplied value
+is written.
+
+**The hero photograph is masked into the `pebble` blob — a design choice made
+with its cost known.** `soft`/`pebble`/`petal` consume the entire length of
+every edge, so their outlines never reach a corner. That is the brand's
+paper-cut signature, and on a group photograph it trims the subjects at the
+horizontal extremes: here, the outer edges of the two outside drawings and both
+outer hems. A tuned variant that kept a straight run down each side (deep
+corners, no edge fully consumed) was built and compared side by side; the
+full blob was preferred on design grounds. Don't "fix" this by tightening the
+shape — but do re-check what the outline removes before masking any _other_
+photo with one.
+
+The cream hairline is a `border`, not padding: `overflow-hidden` clips to the
+padding box and the browser derives the inner curve itself (outer radius minus
+border width), which is the only way to get an even outline around an irregular
+shape. An inset mat cannot follow a blob.
+
+**Frame photographs at the ratio they were shot at** (the hero is
+`aspect-[4/3]` at every breakpoint) — a height-driven or portrait frame made
+`object-cover` discard 17% of the picture on desktop and 40% on mobile.
+
+**Layout follows the data, never a fixed assumption.** The impact ledger derives
+its grid columns from `entries.length` (it used to hardcode four, which left an
+empty column and pushed three metrics off-centre). Card grids use
+`Stagger itemClassName="h-full"` so every card in a row matches height.
 
 ---
 
@@ -224,11 +334,35 @@ content, no markup the public site can't style.
   `ConfirmDialog` · `Panel` (modal/drawer) · `useToast` · `Dropzone` ·
   `MediaPicker` · `Can`
 
+### Public content layer — `@/server/content`
+
+| API                                         | Returns                                                              |
+| ------------------------------------------- | -------------------------------------------------------------------- |
+| `getSiteContent()`                          | Settings, navigation, socials, campaign (incl. its background image) |
+| `createRouteAvailability(nav)`              | Predicate for "is this route built yet?"                             |
+| `getHomeContent()`                          | Homepage copy + featured programmes, gallery, testimonials, figures  |
+| `getPrograms({ featuredOnly?, limit? })`    | Published programmes as cards — used by **both** homepage and index  |
+| `getProgramSlugs()`                         | Slugs for `generateStaticParams()`                                   |
+| `getProgramBySlug(slug)`                    | One programme + composed `narrative` + its gallery                   |
+| `toImageAsset(client, media, fallbackAlt?)` | The one media-row → `ImageAsset` mapper (`content/media.ts`)         |
+
+All are `cache()`d per request and read through the **cookie-less**
+`lib/supabase/public.ts` client, which is what keeps public routes static.
+Never call `supabase.from()` from a page or component.
+
 ### Public design system
 
 `Container` `Section` `Stack` `Cluster` `Grid` `AutoGrid` `Split` `Sidebar`
-`Flow` · `Heading` `Text` · `Button` `Card` `Input` `Field` … ·
-`Reveal` `Stagger` `Floating` `AnimatedCounter` · brand motifs + `OrganicFrame`
+`Flow` · `Heading` `Text` `Emphasis` `Prose` · `Button` `Card` `Input` `Field` … ·
+`Reveal` `Stagger` `Floating` `AnimatedCounter` · brand motifs + `OrganicFrame` ·
+`ProjectCard` `ProjectGrid` `FeaturedProjects` · `GalleryGrid` `GalleryItem`
+`Lightbox` `GalleryLightbox` `ProgramGallery`
+
+`Lightbox` is the single-image modal (homepage preview); `GalleryLightbox` is
+the collection browser (arrow keys, swipe, prev/next, live counter, neighbour
+preloading) and `ProgramGallery` owns its open state. They are siblings on
+purpose — a gallery needs shared state and paging that the single-image version
+should not carry.
 
 **Adding a new CMS editor** (the whole recipe, see `docs/CMS.md`):
 
@@ -240,67 +374,125 @@ content, no markup the public site can't style.
 
 ## 8. Outstanding tasks
 
-### ✅ Done in Phase 5D.0 — provisioning and validation
+### ✅ Done — provisioning, CMS integration, programmes, real content
 
 Supabase project `Chayar-asroy` (`ap-northeast-2`, Postgres 17) is live and
-linked. Migrations `0001`–`0007` applied, seed run, types regenerated, first
-`super_admin` created, and every CMS editor exercised in the browser against it.
-Steps 1–4 below are complete and kept only as the recipe for a second
-environment (staging).
+linked, migrations `0001`–`0011` applied, every CMS editor exercised in the
+browser, the public site reading from the CMS, the programmes archive built, and
+the four real programmes plus real impact figures imported.
 
-1. **Create a Supabase project.** Set `NEXT_PUBLIC_SUPABASE_URL`,
+Setting up a **second environment** (staging) follows this recipe:
+
+1. Create a Supabase project; set `NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
-2. **Run migrations `0001`–`0006` + `seed.sql`.** `supabase link` needs a
-   `config.toml`, which is not committed — run `pnpm dlx supabase init` first,
-   then `login`, `link`, `db push`. Then regenerate types **into a new file**:
-   `pnpm dlx supabase gen types typescript --project-id <ref> > src/types/database.generated.ts`
-   — **never** over `src/types/database.ts` (see §9).
-3. **Create the first user**, then promote:
+2. `pnpm dlx supabase init` (no `config.toml` is committed) → `login` → `link` →
+   `db push` (applies `0001`–`0011`). Run `seed.sql` **in the SQL editor** — see
+   the seed gotcha in §9. Then regenerate types **into a new file**:
+   `pnpm dlx supabase gen types typescript --linked > src/types/database.generated.ts`
+   — **never** over `src/types/database.ts` (§9).
+3. Create the first user in the dashboard, then promote:
    `update public.profiles set role='super_admin' where email='…';`
-4. **Smoke-test one full cycle**: log in → upload an image → create a program →
-   publish it. The upload → storage → row-insert path is the most likely place
-   for a first-contact surprise.
+4. Run both validation harnesses (§4).
+
+### 🔴 Next priorities, in order
+
+1. **Commit and push the working tree.** Everything after `9388cbb` is
+   uncommitted. Do this before anything else.
+2. **Close the `fast-uri` advisory** (§2) — an `overrides` entry in both
+   `pnpm-workspace.yaml` and `package.json`, then `pnpm install` and re-run the
+   gate. Small, self-contained, and it belongs in its own commit.
+3. **Upload photography.** This is still the biggest visible gap: the library
+   holds **one image** (the homepage hero), so every programme cover, gallery
+   tile and the campaign band render branded placeholders. Alt text is now
+   required by the media details form, and any identifiable child needs
+   `consent_verified` ticked — the database refuses to publish otherwise. Attach
+   programme images via the Gallery editor's _Programme_ field.
+   **The existing hero image still has no alt text** — it renders the fallback
+   (the headline). Give it a real description.
+4. **Retire the remaining placeholder content** (see blockers below).
+5. **Transfer ownership** — repo, Supabase org, domain and Vercel project are on
+   a personal account.
+6. Then: the remaining inner pages, or Supabase-backed forms.
 
 ### Content blockers — required before public launch
 
-5. **Real impact figures.** The current 500/40/25/12 are **placeholders the
-   assistant invented**, now living in the `impact_stats` table and flagged
-   `TODO(org)` in `supabase/seed.sql`. Edit them in the CMS, not in code.
-   Publishing invented impact numbers would mislead donors.
-6. **Guardian consent** for any identifiable child's photo or name. Testimonials
-   currently use first-name + age placeholders.
-7. **Real copy** for mission/vision, programs, stories; **real photography**.
-8. Confirm the volunteer quote in the Impact section is something a volunteer
-   actually said.
+- **Guardian consent** for any identifiable child's photo or name.
+- **Homepage copy is still placeholder** — hero, mission, voices, how-to-help
+  and the campaign band all came from the retired `src/content/home.ts` and are
+  flagged `TODO(org)` in `supabase/seed.sql`. Edit in the CMS, not in code.
+- **Testimonials are invented** (Nusrat/Rafi, first-name + age placeholders),
+  as is the volunteer quote in the Impact section.
+- **Three placeholder programmes** (`creative-workshops`, `learning-support`,
+  `community-art-events`) are set to **draft**, not deleted — they are invisible
+  publicly but still in the CMS. Delete them once you are sure nothing is needed.
+- `supabase/seed.sql` still bootstraps those placeholder programmes for a fresh
+  environment. Worth cleaning before provisioning staging.
 
-### ✅ Phase 5D — public site reads from the CMS
+**Resolved:** impact figures are now real (80 / 20 / 4) and programme content is
+the organisation's own, imported verbatim from the Event Documentation PDF.
 
-`src/content/` is gone and `src/config/site.ts` now holds infrastructure only
-(canonical URL, locale, logo asset, and a last-resort brand identity used when
-Supabase is unconfigured). Everything the public site shows comes from
-`@/server/content`:
+### Programme content provenance
 
-- **`getSiteContent()`** — settings, navigation and socials, request-cached and
-  shared by the header, footer and metadata.
-- **`getHomeContent()`** — homepage copy (`pages.content` jsonb) plus featured
-  programs, gallery preview, testimonials and impact figures.
+The four programmes were extracted from the official _Event Documentation_ PDF
+and imported **verbatim** — no rewriting, reordering or summarising. Verification
+was mechanical rather than by eye: every stored field was checked back against
+the extracted source text (78 fields/paragraphs, all matching), and each
+programme's `objectives`, rejoined, is byte-identical to its source paragraph.
 
-Reads go through `lib/supabase/public.ts`, a **cookie-less** anon client, so `/`
-stays statically rendered (verified: still `○` in the build output) and is
-refreshed by the `revalidatePath()` calls the CMS actions already make.
+Two deliberate transformations, both reversible:
+
+- **Objectives were split into sentences**, because the PDF states them as prose
+  and the CMS field is an ordered list. Rejoining restores the original exactly.
+- **"Special collaboration with BUTAM"** (Art Workshop 3) has no matching CMS
+  field — no partners/collaborations concept exists. It is preserved verbatim as
+  the closing line of that programme's Activities. It is the only item whose
+  _placement_ differs from the source.
+
+`summary` is the verbatim **first sentence** of each opening paragraph, because
+the column is `not null` and the PDF has no summary field.
 
 ### Later
 
-- Inner pages (Our Journey, Programs, Gallery, Stories, Get Involved, Contact).
-  All six are still `available: false` in `siteConfig.nav`; flip each flag as
-  its page ships and the navigation and section CTAs re-link themselves.
+- Remaining inner pages (Our Journey, Gallery, Stories, Get Involved, Contact).
+  All are `is_available: false` in `navigation_items`; flip each flag in the CMS
+  as its page ships and the navigation and section CTAs re-link themselves.
 - Supabase-backed forms (volunteer applications, donation pledges, contact)
-- **Transfer ownership.** The repo now lives at
-  `github.com/Adibreal/Chayar-asroy` — a personal account. Repo, Vercel
-  project, domain and Supabase org should all be **org-owned**, not a
-  graduating student's.
 - Decide EN-only vs bilingual EN/BN (Bengali font stack already wired)
 - Consider migrating `src/middleware.ts` to Next 16's `proxy` convention (§9)
+
+### Remaining technical debt
+
+- **No Markdown rendering.** `<Prose>` handles paragraphs + `*emphasis*` only.
+  The Stories editor still advertises full Markdown in its help text, and there
+  is no public Stories page yet, so nothing is visibly broken — but the two are
+  inconsistent.
+- **Hardcoded copy on `/programs`.** The page hero ("Programs" + its lead
+  paragraph) is in the page file, unlike the homepage which reads from
+  `pages.content`. It should move to a `pages` row with slug `programs`.
+- **Hardcoded SEO `keywords`** in `lib/seo/metadata.ts`, with no CMS home.
+- **Impact ledger orphan row.** At 5+ metrics the final partial row is
+  left-aligned, not centred — a CSS Grid constraint. Exact for 1–4.
+- **Gallery ordering is numeric** (no drag-and-drop), and images are attached to
+  a programme from the Gallery editor rather than inline on the programme.
+- **Mission pillars are fixed at two**; donation categories and impact-icon
+  names are code-level registries, not editable rows.
+- **Dashboard tiles still say "Available in the next phase"** although all six
+  editors exist. `Welcome back, there` is an awkward null-name fallback.
+- **No staging environment**; `revalidatePath` is the only cache invalidation.
+
+### Remaining UI polish
+
+- **Nothing has been visually confirmed in a real browser.** The in-app preview
+  does not composite (§9), so every layout claim in this document was verified
+  by measuring the DOM — geometry, contrast, heading order — not by looking at
+  pixels. A pass on a real monitor and a real phone is worth doing.
+- Programme detail body measure is **896px ≈ 117 characters per line**, above
+  the 45–75 ideal. It was widened deliberately on request; the lever that would
+  buy readability back is a larger body size, not a narrower column.
+- The campaign band's dark wash is **70–85%**, deeper than the 50–70% originally
+  specified, because at 60% even pure white small text measured 4.44:1 against a
+  bright photograph — below the AA floor. Revisit only with contrast in hand.
+- Logo on the new cobalt footer has not been checked against the blue.
 
 ---
 
@@ -311,6 +503,23 @@ applied.** It prints "Updating seed hash" and records the new hash _without
 executing the file_, so edits to `seed.sql` never reach an existing remote
 project. Run changed seed SQL through the dashboard SQL editor instead. (The
 file stays idempotent, so re-running it is always safe.)
+
+**A CMS field that saves without error can still be read from the wrong place.**
+The homepage "Hero image" picker wrote its id into `pages.content.heroMediaId`
+(jsonb) while the public site read `pages.og_media_id`. Every layer worked in
+isolation — the picker saved, the editor's thumbnail rendered (it read the same
+jsonb key), no error appeared anywhere — and the hero silently showed its
+placeholder no matter what an editor chose. Two lessons: a media id belongs in a
+column, not jsonb (§6); and when a CMS field appears to do nothing, **compare
+the column the form writes with the column the page reads** before suspecting
+the component. Fixed by migration `0011`.
+
+**`alt_text` is `not null`, which does not mean it has a value.** An empty
+string satisfies the constraint, and uploads deliberately set `""` because files
+arrive in batches through the dropzone. Alt text is therefore required by the
+media **details** form (`updateMediaSchema`), and `toImageAsset` takes an
+optional `fallbackAlt` for rows stored before that rule existed — the homepage
+passes its headline. Check `alt`, not just presence, when auditing images.
 
 **Public reads must use `lib/supabase/public.ts`, not `server.ts`.** The latter
 reads `cookies()`, which opts the route out of static rendering; using it on the
@@ -338,12 +547,34 @@ added images never appeared until a full page load. Derive from props and let
 `router.refresh()` be the single update path — the same trap as the
 `set-state-in-effect` rule below, one layer up.
 
+**Prefer CSS to a JS animation driver for anything that hides content.** A
+"show more" region animated with Motion's `height: auto` left the content
+**permanently unreachable** when the driver never ran: `aria-expanded` flipped to
+`true` and `inert` was removed, but the inline style stayed `height: 0px`. The
+open state must be expressible in CSS (`grid-rows-[0fr]` → `[1fr]`) so the worst
+failure is "appears instantly", never "never appears".
+
 **Animations are unverified at runtime.** The in-app browser pane in this
-environment stops compositing — screenshots fail and **all** Motion
-`whileInView` animations stall at opacity 0 page-wide (verified: 39/39 elements,
-including untouched sections). If you see this, sample
-`main [style*="opacity"]`; if everything is 0, it's the environment, not the
-code. Verify motion in a real browser.
+environment stops compositing — screenshots fail, CSS transitions never advance,
+`window.innerWidth` sometimes reads 0, and **all** Motion `whileInView`
+animations stall at opacity 0 page-wide (verified: 39/39 elements, including
+untouched sections). If you see this, sample `main [style*="opacity"]`; if
+everything is 0, it's the environment, not the code.
+
+To prove a layout is correct despite the stall, **disable the transition inline
+and re-measure** (`el.style.transition = 'none'; void el.offsetHeight;`). If the
+element then reports its natural size, the layout is sound and only the frame
+loop is dead. Verify motion in a real browser.
+
+**Measure contrast by compositing, not by parsing the colour string.** Tailwind
+opacity utilities compute to `oklab(… / 0.8)`; naively pulling numbers out of
+that string yields nonsense ratios. Resolve the colour through a 1×1 canvas,
+alpha-composite it over the real background, then compute the ratio. Doing this
+properly is what caught the campaign band failing AA against a bright image.
+
+**In a `values` subquery, an enum literal infers as `text`.** `insert … select
+… from (values …)` into a `content_status` column fails without an explicit
+`::public.content_status` cast. The direct `insert … values` form does not.
 
 **`"use server"` modules may only export async functions.** A stray
 `export const` silently voids _all_ exports; the build fails with

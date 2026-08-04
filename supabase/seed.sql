@@ -19,7 +19,7 @@ values (
   'chayarasroy@gmail.com',
   'Dhaka, Bangladesh',
   'Support our work',
-  '#how-to-help',
+  '/#how-to-help',
   true,
   'Join us',
   'Be the reason a child believes in tomorrow.',
@@ -118,15 +118,48 @@ values (
 )
 on conflict (slug) do nothing;
 
--- Featured programs.
-insert into public.programs (slug, title, category, summary, order_index, is_featured, status)
+-- Programmes.
+--
+-- ⚠️ TODO(org): placeholder programmes. The story fields below exist to show
+-- the shape of a complete programme page — replace all of it, including the
+-- dates, locations and participation figures, with real records. Delete any
+-- programme the organisation did not actually run.
+insert into public.programs (
+  slug, title, category, summary, body, activities,
+  event_date, location, participation, objectives, volunteers,
+  order_index, is_featured, status
+)
 values
   ('creative-workshops', 'Creative Workshops', 'art',
-   'Helping children discover confidence through painting and imagination.', 1, true, 'published'),
+   'Helping children discover confidence through painting and imagination.',
+   E'A room, a stack of paper, and more colour than anyone knew what to do with.\n\nThe workshop began quietly. Within an hour it was the loudest room in the building — which is exactly what we hoped for.',
+   E'Children worked in small groups with a volunteer each, moving between painting, collage and free drawing.\n\nEvery child took their work home, and a few insisted on making a second one for a sibling.',
+   '2026-03-14', 'Mirpur, Dhaka', '45 children, 8 volunteers',
+   array[
+     'Give every child unhurried access to art materials',
+     'Build confidence through finished, take-home work',
+     'Give volunteers a first, low-pressure session to learn from'
+   ],
+   array['Nusrat Jahan', 'Rafiul Islam', 'Tanvir Ahmed'],
+   1, true, 'published'),
+
   ('learning-support', 'Learning Support', 'education',
-   'After-school classes and resources that strengthen foundational learning.', 2, true, 'published'),
+   'After-school classes and resources that strengthen foundational learning.',
+   E'Reading and arithmetic, taught at the pace of the child in front of you rather than the syllabus.',
+   E'Two hours after school, twice a week, in groups small enough that nobody could hide at the back.',
+   '2026-04-22', 'Mohammadpur, Dhaka', '30 children, 6 volunteers',
+   array['Strengthen reading and number confidence', 'Keep attendance steady across the term'],
+   array['Sadia Rahman', 'Imran Hossain'],
+   2, true, 'published'),
+
   ('community-art-events', 'Community Art Events', 'community',
-   'Events that bring neighbourhoods together through shared creativity.', 3, true, 'published')
+   'Events that bring neighbourhoods together through shared creativity.',
+   E'An open day where the art belonged to the whole street, not just the children who made it.',
+   E'A shared mural, a display of the term''s work, and tea for anyone who stopped to look.',
+   '2026-05-30', 'Dhanmondi, Dhaka', '120 attendees, 12 volunteers',
+   array['Show the children''s work to their own community', 'Invite new families to join'],
+   array['Mahmudul Hasan', 'Farhana Akter', 'Zahid Khan'],
+   3, true, 'published')
 on conflict (slug) do nothing;
 
 -- Testimonials. Attribution is first name + age only — the dignity-preserving
@@ -149,19 +182,22 @@ where not exists (
 
 -- Impact figures.
 --
--- ⚠️ TODO(org): 500 / 40 / 25 / 12 ARE INVENTED PLACEHOLDERS. Publishing
--- unevidenced impact numbers for a real nonprofit would mislead donors and
--- volunteers. Replace every value with a figure the organisation can evidence,
--- and delete any row it cannot — the ledger renders whatever it is given, and
--- renders nothing at all when the table is empty.
+-- These are the organisation's REAL, supplied figures — no longer placeholders.
+-- They are exact counts, so no `+` suffix: a trailing plus would claim more than
+-- the organisation stated.
+--
+-- Keep them current, and never add a row the organisation cannot evidence. A
+-- fourth "Communities" figure was carried here while the data was invented; it
+-- was removed rather than guessed at. The ledger renders whatever it is given,
+-- and renders nothing at all when the table is empty, so dropping a metric you
+-- cannot back up is always safe.
 insert into public.impact_stats (label, value, suffix, icon, order_index, is_visible)
 select v.label, v.value, v.suffix, v.icon, v.order_index, v.is_visible
 from (
   values
-    ('Children reached',   500, '+',        'children',  1, true),
-    ('Student volunteers',  40, null::text, 'hands',     2, true),
-    ('Workshops held',      25, null::text, 'workshop',  3, true),
-    ('Communities',         12, null::text, 'community', 4, true)
+    ('Children reached', 80, null::text, 'children', 1, true),
+    ('Volunteers',       20, null::text, 'hands',    2, true),
+    ('Programs held',     4, null::text, 'workshop', 3, true)
 ) as v (label, value, suffix, icon, order_index, is_visible)
 where not exists (
   select 1 from public.impact_stats s where s.label = v.label
