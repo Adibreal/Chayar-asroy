@@ -16,7 +16,20 @@ import { Text } from "./text";
  * is wanted later, this is the single component to swap — see the note in
  * HANDOFF.md §9.
  */
-export function Prose({ text, className }: { text: string; className?: string }) {
+export function Prose({
+  text,
+  variant = "body",
+  className,
+}: {
+  text: string;
+  /**
+   * Type size for the paragraphs. `lead` is for a short passage meant to be
+   * read as a statement — a page's opening words — rather than a long
+   * narrative, where `body` stays the comfortable measure.
+   */
+  variant?: "body" | "lead";
+  className?: string;
+}) {
   const paragraphs = text
     .split(/\n\s*\n/)
     .map((paragraph) => paragraph.trim())
@@ -30,7 +43,7 @@ export function Prose({ text, className }: { text: string; className?: string })
     // than a stack of blocks.
     <div className={cn("flex flex-col gap-5", className)}>
       {paragraphs.map((paragraph, index) => (
-        <Text key={index} tone="muted">
+        <Text key={index} variant={variant} tone="muted">
           {/* Single newlines inside a paragraph stay soft breaks, so an editor's
               line wrapping never invents a new paragraph. */}
           {paragraph.split("\n").map((line, lineIndex) => (

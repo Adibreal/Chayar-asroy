@@ -1,3 +1,4 @@
+export { Decor, type DecorArt } from "./decor";
 export { Spiral, Star, Sun, Leaf, Sprout, Squiggle, Blob, Flower, Branch } from "./motifs";
 export { OrganicFrame } from "./organic-frame";
 export { Logo, TreeMark } from "./logo";

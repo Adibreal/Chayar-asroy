@@ -2,7 +2,8 @@ import { ArrowRight, BookOpen, Check, Gift, Palette } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Sprout, Sun } from "@/components/brand";
+import { WhoWeAre } from "@/components/about";
+import { Decor } from "@/components/brand";
 import { CampaignCTA, PrimaryCta } from "@/components/cta";
 import { GalleryGrid } from "@/components/gallery";
 import { ImpactColumns } from "@/components/impact";
@@ -10,7 +11,7 @@ import { Hero, HeroActions, HeroBadge, HeroContent, HeroMedia } from "@/componen
 import { Container, Section, Split, Stack } from "@/components/layout";
 import { Reveal, Stagger } from "@/components/motion";
 import { FeaturedProjects } from "@/components/projects";
-import { DecorativeBackground, SectionHeader } from "@/components/sections";
+import { DecorativeBackground, DecorativeLayer, SectionHeader } from "@/components/sections";
 import { QuoteSection, TestimonialCard } from "@/components/testimonials";
 import { Emphasis, Heading, Text } from "@/components/typography";
 import { Button, Card, IconBadge } from "@/components/ui";
@@ -46,11 +47,6 @@ const donationIcons: Record<string, ReactNode> = {
   "clothes-toys": <Gift />,
   "crayons-colours": <Palette />,
 };
-
-const pillarIcons = [
-  { icon: <Sprout />, tone: "secondary" as const },
-  { icon: <Sun />, tone: "accent" as const },
-];
 
 export default async function HomePage() {
   const [site, home] = await Promise.all([getSiteContent(), getHomeContent()]);
@@ -106,38 +102,9 @@ export default async function HomePage() {
         </Section>
       ) : null}
 
-      {/* 2 · HOPE — Mission */}
-      {copy && (copy.mission.title ?? copy.mission.pillars.length > 0) ? (
-        <Section spacing="lg">
-          <Container>
-            <Split ratio="1-1" gap="xl" align="center">
-              <Reveal>
-                <SectionHeader
-                  eyebrow={copy.mission.eyebrow ?? undefined}
-                  title={copy.mission.title ?? undefined}
-                  description={copy.mission.description ?? undefined}
-                />
-              </Reveal>
-              <Reveal delay={0.1}>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {copy.mission.pillars.map((pillar, i) => (
-                    <Card key={pillar.title} variant="base" padding="lg">
-                      <Stack gap="sm">
-                        <IconBadge tone={pillarIcons[i]?.tone ?? "primary"}>
-                          {pillarIcons[i]?.icon}
-                        </IconBadge>
-                        <Heading level={3} size="h5">
-                          {pillar.title}
-                        </Heading>
-                        <Text tone="muted">{pillar.body}</Text>
-                      </Stack>
-                    </Card>
-                  ))}
-                </div>
-              </Reveal>
-            </Split>
-          </Container>
-        </Section>
+      {/* 2 · HOPE — Who we are */}
+      {copy?.mission.title && copy.mission.description ? (
+        <WhoWeAre title={copy.mission.title} body={copy.mission.description} />
       ) : null}
 
       {/* 3 · TRUST — Featured programs
@@ -173,7 +140,17 @@ export default async function HomePage() {
 
       {/* 4 · CONNECTION — Gallery preview */}
       {home.galleryPreview.length > 0 ? (
-        <Section spacing="lg">
+        <Section spacing="lg" className="relative isolate overflow-hidden">
+          {/* A grid of photographs is already busy, so this section gets the
+              lightest touch on the page: one spiral, high left, well clear of
+              the images. */}
+          <DecorativeLayer>
+            <Decor
+              art="spiral"
+              sizes="8vw"
+              className="absolute top-6 left-[3%] hidden w-12 rotate-[25deg] opacity-35 lg:block"
+            />
+          </DecorativeLayer>
           <Container>
             <Stack gap="lg">
               <Reveal>
@@ -245,7 +222,22 @@ export default async function HomePage() {
        * them to help. Renders nothing when there are no figures.
        */}
       {home.impactStats.length > 0 ? (
-        <Section spacing="xl">
+        <Section spacing="xl" className="relative isolate overflow-hidden">
+          {/* The figures are centred with air either side, so a spray can sit
+              in that margin. Rotated near-upright and mirrored — a different
+              silhouette from every other spray on the page. */}
+          <DecorativeLayer>
+            <Decor
+              art="leafSpray"
+              sizes="(min-width: 1024px) 14vw, 26vw"
+              className="absolute top-[12%] right-[2%] hidden w-28 -scale-x-100 rotate-[65deg] opacity-30 lg:block xl:w-36"
+            />
+            <Decor
+              art="spiral"
+              sizes="8vw"
+              className="absolute bottom-[14%] left-[4%] hidden w-14 -rotate-[15deg] opacity-30 xl:block"
+            />
+          </DecorativeLayer>
           <Container>
             <ImpactColumns
               eyebrow={copy?.impact.eyebrow ?? undefined}
@@ -263,6 +255,20 @@ export default async function HomePage() {
       {copy?.help.title ? (
         <Section id="how-to-help" spacing="lg" className="relative isolate overflow-hidden">
           <DecorativeBackground variant="scatter" />
+          {/*
+            The figure's one appearance in the body of the page, and it is here
+            because here it means something: this is the section about giving,
+            and a figure with its arms up is the outcome of giving rather than
+            an ornament. Bottom-left, behind the donation cards, faint enough to
+            register only as warmth.
+          */}
+          <DecorativeLayer>
+            <Decor
+              art="figure"
+              sizes="16vw"
+              className="absolute -bottom-6 left-[1%] hidden w-28 -scale-x-100 opacity-30 xl:block"
+            />
+          </DecorativeLayer>
           <Container>
             <Split ratio="1-1" gap="xl" align="center">
               <Reveal>

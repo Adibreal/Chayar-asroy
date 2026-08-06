@@ -1,4 +1,6 @@
+import { Decor } from "../brand/decor";
 import { Logo } from "../brand/logo";
+import { DecorativeLayer } from "../sections/backgrounds";
 import { Text } from "../typography/text";
 import { Separator } from "../ui/separator";
 import type { SiteContent } from "@/server/content/site";
@@ -35,7 +37,33 @@ export function Footer({ site }: { site: SiteContent }) {
         only source of space above the logo, so the content does not sit flush
         against that edge.
       */}
-      <div className="bg-primary">
+      <div className="relative isolate overflow-hidden bg-primary">
+        {/*
+          The page's last word is a small figure with its arms up, in marigold
+          on the cobalt. It is the one place the mark is allowed to sit on its
+          own: after the content has ended, where it reads as a sign-off rather
+          than as decoration competing with anything. Leaves answer it from the
+          opposite corner. Both are faint, and both step aside below `md` where
+          the footer stacks and there is no spare width.
+        */}
+        <DecorativeLayer>
+          <Decor
+            art="figure"
+            sizes="14vw"
+            className="absolute right-[5%] bottom-2 hidden w-24 opacity-25 md:block lg:w-28"
+          />
+          <Decor
+            art="leafSpray"
+            sizes="16vw"
+            className="absolute top-4 left-[2%] hidden w-32 -scale-x-100 rotate-[18deg] opacity-20 lg:block"
+          />
+          <Decor
+            art="spiral"
+            sizes="8vw"
+            className="absolute top-8 right-[24%] hidden w-14 rotate-[200deg] opacity-20 lg:block"
+          />
+        </DecorativeLayer>
+
         <div className="container-page pt-16 pb-12 sm:pt-24 sm:pb-16">
           <div
             className={cn(

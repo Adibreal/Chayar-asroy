@@ -4,7 +4,8 @@ import Link from "next/link";
 import { GalleryGrid } from "@/components/gallery";
 import { Container, Section, Stack } from "@/components/layout";
 import { Reveal } from "@/components/motion";
-import { DecorativeBackground } from "@/components/sections";
+import { Decor } from "@/components/brand";
+import { DecorativeBackground, DecorativeLayer } from "@/components/sections";
 import { Heading, Text } from "@/components/typography";
 import { Button, EmptyState, Separator } from "@/components/ui";
 import { formatEventDate } from "@/lib/utils";
@@ -44,6 +45,19 @@ export default async function GalleryPage() {
           the spacing so the heading leads straight into the photographs. */}
       <Section spacing="md" className="relative isolate overflow-hidden pb-0">
         <DecorativeBackground variant="scatter" />
+        {/*
+          One mark beyond the shared preset, so this page and `/programs` — which
+          otherwise inherit exactly the same arrangement — are recognisably
+          different rooms in the same house. A spray high on the right answers
+          the preset's low-left one.
+        */}
+        <DecorativeLayer>
+          <Decor
+            art="leafSpray"
+            sizes="14vw"
+            className="absolute top-2 right-[16%] hidden w-28 rotate-[125deg] opacity-25 xl:block"
+          />
+        </DecorativeLayer>
         <Container>
           <Reveal>
             <Stack gap="md" align="start" className="max-w-2xl">

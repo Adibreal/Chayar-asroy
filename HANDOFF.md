@@ -126,6 +126,7 @@ src/
 ├── server/     auth, db, repositories, actions, storage, shared, media-url
 │   └── content/  site.ts · home.ts · programs.ts · gallery.ts · media.ts
 │                 the PUBLIC read layer — every public page reads via here
+├── assets/     decor/ — the official decorative artwork (WebP)
 ├── types/      database.ts (derived), database.generated.ts, content.ts
 └── validation/ common, auth, media, content  (Zod — single source of truth)
 
@@ -341,6 +342,41 @@ bucket rather than vanishing or linking to a page that does not exist.
 volunteers, a six-image preview); `/gallery/[slug]` is the photographs. Each
 links to the other, and neither repeats the other's content — the event is
 written down once.
+
+**The decorative language is three supplied assets, transformed — never new
+artwork.** `src/assets/decor/` holds the official pieces cut out of the two
+design sheets in `design/`: the figure with brush and tool, a leaf spray, and a
+spiral. They are rendered through `<Decor>`, which is `alt=""` + `aria-hidden`
+by construction. **Variety comes from transforming these three** — scale,
+rotation, mirroring (`-scale-x-100`), opacity — which is what keeps every page
+related without any two looking alike. Do not add drawn SVG ornament back; the
+motifs in `motifs.tsx` survive only as `Blob`, used for the large off-canvas
+colour washes, which are tint fields rather than ornament.
+
+Two things about the extraction are worth knowing before re-cutting anything
+from `design/`: the spiral shipped with a **transparency checkerboard
+rasterised into the artwork** (opaque light-grey and white squares, which is why
+clearing only non-opaque pixels left it behind), and the sheets are 3.9 MB of
+PNG that becomes ~150 KB of WebP with no visible loss.
+
+**The figure is spent, not sprinkled.** It is the only asset depicting a person,
+which makes it the loudest thing available — used as punctuation it reads as
+joy, repeated it reads as a logo. It appears **three times on the homepage**:
+in _Who Are We_ (the section is about the people), in _How to help_ (a figure
+with its arms up is the outcome of giving, not an ornament), and in the footer
+(after the content ends, as a sign-off). Adding a fourth should require an
+argument.
+
+Everything else lives in the shared `DecorativeBackground` presets rather than
+being pasted per page, so the inner pages inherit the language automatically:
+`garden` is the richest, `scatter` is deliberately its mirror image so a reader
+moving from the homepage to `/programs` meets the same vocabulary in a different
+arrangement, and `blobs` is the quietest. Density is a rhythm, not a constant —
+the programmes section carries **zero** decoration on purpose, as a rest beat
+between the two densest sections. Measured coverage runs 0–8% per section, with
+_Who Are We_ the deliberate peak, and 18 of the homepage's 21 pieces are hidden
+below `md`. Motifs are kept clear of the text block's bounding box: a motif
+inside the column reads as a typo rather than as decoration.
 
 **Layout follows the data, never a fixed assumption.** The impact ledger derives
 its grid columns from `entries.length` (it used to hardcode four, which left an

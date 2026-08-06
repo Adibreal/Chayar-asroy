@@ -10,7 +10,7 @@ do/don't — in [`DESIGN_SYSTEM.md`](../../DESIGN_SYSTEM.md).
 | `layout/`     | Structural primitives (Container, Section, Stack, Grid, Sidebar…)     | Server         |
 | `typography/` | `Heading`, `Text`, `Emphasis`, `Prose`                                | Server         |
 | `ui/`         | Universal components (buttons, cards, forms, feedback, overlays…)     | Server/Client¹ |
-| `brand/`      | Motifs, `Logo`/`TreeMark`, decorations, `OrganicFrame`, social glyphs | Server         |
+| `brand/`      | `Decor` (official artwork), `Logo`/`TreeMark`, `Blob`, `OrganicFrame` | Server         |
 | `motion/`     | `Reveal`, `Floating`, `Stagger`, `AnimatedCounter`                    | Client         |
 
 ## Feature & section library (Phase 3B)
@@ -25,6 +25,7 @@ Nothing here is page-specific.
 | `media/`        | `Media` (next/image + `ImageAsset`), `ImagePlaceholder`                                           |
 | `hero/`         | `Hero`, `HeroContent`, `HeroBadge`, `HeroActions`, `HeroMedia`, `HeroStats`                       |
 | `projects/`     | `ProjectCard`, `ProjectGrid`, `FeaturedProjects`, `ProjectCategories`                             |
+| `about/`        | `WhoWeAre`                                                                                        |
 | `gallery/`      | `GalleryGrid`, `GalleryItem`, `Lightbox`, `GalleryLightbox`, `GalleryCollection`, `FeaturedImage` |
 | `testimonials/` | `TestimonialCard`, `StoryCard`, `QuoteSection`                                                    |
 | `impact/`       | `Stat`, `ImpactMetrics`, `ImpactColumns`, `AchievementHighlight`, `impactIcons`                   |

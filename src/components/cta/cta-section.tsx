@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
-import { Blob, Spiral, Star } from "../brand/motifs";
+import { Decor } from "../brand/decor";
+import { Blob } from "../brand/motifs";
 import { Cluster } from "../layout/cluster";
 import { Media } from "../media/media";
 import { DecorativeLayer } from "../sections/backgrounds";
@@ -111,10 +112,23 @@ export function CTASection({
         className="absolute inset-0 -z-10 bg-radial from-transparent from-40% to-ink/30"
       />
 
+      {/*
+        The only place the artwork sits on a photograph rather than on paper.
+        Both pieces are warm enough to hold against the dark wash, and both are
+        kept to the outer thirds so the centred message stays clear.
+      */}
       <DecorativeLayer>
         <Blob className="absolute -top-16 -right-16 size-72 text-white/5" />
-        <Star className="absolute top-10 left-[8%] size-8 text-marigold/70" />
-        <Spiral className="absolute right-[12%] bottom-8 size-10 text-white/15" />
+        <Decor
+          art="spiral"
+          sizes="10vw"
+          className="absolute top-6 left-[6%] w-14 -rotate-12 opacity-55 sm:w-16"
+        />
+        <Decor
+          art="leafSpray"
+          sizes="14vw"
+          className="absolute right-[7%] bottom-4 hidden w-28 rotate-[160deg] opacity-30 sm:block lg:w-32"
+        />
       </DecorativeLayer>
 
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-5 text-center">
