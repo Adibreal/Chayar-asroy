@@ -11,9 +11,8 @@ volunteers. Optimise for maintainability, accessibility, security and clarity.
 Prefer boring, proven solutions. Never invent organisational facts or numbers.
 
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy` (Windows, PowerShell).
-Branch `main`, last commit `9388cbb` (_feat(cms): connect public site to Supabase
-CMS_), remote `github.com/Adibreal/Chayar-asroy`. **The working tree has
-uncommitted work — commit it before starting anything new.**
+Branch `main`, last commit `d6003c0` (_feat(programs): add programmes archive and
+connect hero image to the CMS_), remote `github.com/Adibreal/Chayar-asroy`.
 
 ## Stack
 
@@ -58,18 +57,22 @@ Pins are deliberate: TypeScript **5.x**, ESLint **9.x** (not 7/10).
   picker used to write into `content` jsonb while the site read `og_media_id`,
   so the hero always showed its placeholder.
 
-**Not done:** remaining inner pages (Our Journey, Gallery, Stories, Get
-Involved, Contact); **photography — the library holds one image** (the homepage
-hero), so everything else renders a branded placeholder; homepage copy and
-testimonials are still placeholder.
+- **Gallery, organised by event:** 19 photographs imported into the media
+  library (consent confirmed, alt text written, attached to their programme).
+  `/gallery` lists each event with its date, location and a preview;
+  `/gallery/[slug]` shows that event's photographs; the homepage shows four
+  drawn at random per regeneration. One query backs all three.
 
-⚠️ **Uncommitted:** everything after commit `9388cbb` is in the working tree
-only. Commit it first.
+**Not done:** remaining inner pages (Our Journey, Stories, Get Involved,
+Contact); programme **cover images** and the campaign background are still
+placeholders even though real photos are now in the library; homepage copy and
+testimonials are still placeholder.
 
 ## Architecture
 
 ```
-src/app/  page.tsx (home) · programs/ (archive + [slug]) · layout.tsx · not-found.tsx
+src/app/  page.tsx (home) · programs/ (archive + [slug]) · gallery/ (events + [slug])
+          layout.tsx · not-found.tsx
           globals.css · icon.svg · robots.ts · sitemap.ts
           (admin)/admin/* (protected, force-dynamic)
           (auth)/admin/login (separate group — required) · (dev)/showcase
@@ -80,7 +83,7 @@ src/hooks/    use-media-query · use-prefers-reduced-motion
 src/providers/  motion-provider (MotionConfig reducedMotion="user")
 src/lib/      utils(cn) styles polymorphic motion/* seo/* supabase/* permissions
 src/server/   auth db repositories actions storage shared media-url
-src/server/content/  site.ts home.ts programs.ts media.ts  ← PUBLIC read layer
+src/server/content/  site.ts home.ts programs.ts gallery.ts media.ts ← PUBLIC read layer
 src/types/    database.ts (derived) database.generated.ts content.ts index.ts
 src/validation/  common auth media content   ← single source of input truth
 supabase/migrations/ 0001–0011 · seed.sql
@@ -108,11 +111,13 @@ Docs: `HANDOFF.md` (canonical), `README.md`, `DESIGN_SYSTEM.md`,
 `Heading Text Emphasis Prose` · `Button Card Input Field …` · `Reveal Stagger
 Floating AnimatedCounter` · brand motifs + `OrganicFrame` · `PrimaryCta`
 `CampaignCTA` · `ProjectCard/Grid` · `GalleryGrid` `Lightbox` `GalleryLightbox`
-`ProgramGallery`.
+`GalleryCollection`.
 
 **Public content:** `getSiteContent()` · `createRouteAvailability(nav)` ·
 `getHomeContent()` · `getPrograms({featuredOnly,limit})` · `getProgramSlugs()` ·
-`getProgramBySlug(slug)` · `toImageAsset()` — all in `@/server/content`.
+`getProgramBySlug(slug)` · `getGalleryEvents()` · `getGalleryEvent(slug)` ·
+`getGalleryImages({shuffle,limit})` · `toImageAsset()`
+— all in `@/server/content`.
 
 **New CMS editor =** `"use server"` file delegating to `createEntityActions` +
 server list page reading `searchParams` + one form component (new & edit) in
@@ -191,17 +196,14 @@ dignity-first; children are creators, never objects of pity. Logo:
 
 ## Immediate next steps
 
-1. **Commit and push the working tree** — everything after `9388cbb` is
-   uncommitted.
-2. **Close the `fast-uri` advisory** (see Validation below).
-3. **Upload photography.** The CMS holds **zero images**, so every cover, hero,
-   gallery and the campaign band render branded placeholders. Each needs alt
-   text; any identifiable child needs `consent_verified` (the database refuses
-   to publish otherwise). Attach programme images via the Gallery editor's
-   _Programme_ field.
-4. **Retire the remaining placeholder content** (below).
-5. **Transfer ownership** to org-owned accounts.
-6. Then: remaining inner pages, or Supabase-backed forms.
+1. **Close the `fast-uri` advisory** (see Validation below).
+2. **Set programme cover images** and the campaign background — real
+   photographs are in the library now, but `programs.cover_media_id` and
+   `site_settings.campaign_media_id` are still empty, so those render
+   placeholders. Cheapest remaining visual win.
+3. **Retire the remaining placeholder content** (below).
+4. **Transfer ownership** to org-owned accounts.
+5. Then: remaining inner pages, or Supabase-backed forms.
 
 Setting up a _second_ environment (staging) follows the recipe in
 `docs/BACKEND.md` §1: `supabase init` → `login` → `link` → `db push`

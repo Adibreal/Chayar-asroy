@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { PrimaryCta } from "@/components/cta";
-import { ProgramGallery } from "@/components/gallery";
+import { GalleryCollection } from "@/components/gallery";
 import { Container, Section, Split, Stack } from "@/components/layout";
 import { Media } from "@/components/media";
 import { Reveal } from "@/components/motion";
@@ -200,7 +200,11 @@ export default async function ProgramPage({ params }: Params) {
                 </Heading>
               </Reveal>
               <Reveal>
-                <ProgramGallery items={program.gallery} label={`${program.title} gallery`} />
+                <GalleryCollection
+                  items={program.gallery}
+                  label={`${program.title} gallery`}
+                  previewCount={6}
+                />
               </Reveal>
             </Stack>
           </Container>

@@ -22,30 +22,27 @@ solutions over clever ones.
 
 ## 2. Current state
 
-|                              | Status                                                               |
-| ---------------------------- | -------------------------------------------------------------------- |
-| Public homepage              | ✅ 8 sections, entirely CMS-driven                                   |
-| Design system                | ✅ Complete + documented                                             |
-| SEO surface                  | ✅ `generateSiteMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`   |
-| Backend platform (Supabase)  | ✅ Provisioned, migrations `0001`–`0011`, validated live             |
-| CMS framework + 6 editors    | ✅ Validated end-to-end in the browser                               |
-| Public site reading from CMS | ✅ Phase 5D — homepage, shell and programmes                         |
-| **Programs archive**         | ✅ `/programs` + `/programs/[slug]` with per-programme galleries     |
-| **Real programme content**   | ✅ 4 programmes imported verbatim from the Event Documentation PDF   |
-| **Real impact figures**      | ✅ 80 children · 20 volunteers · 4 programmes                        |
-| **Hero image from the CMS**  | ✅ `pages.hero_media_id` (migration `0011`) — see §6                 |
-| Other inner pages            | ❌ Our Journey, Gallery, Stories, Get Involved, Contact              |
-| Photography                  | ⚠️ **1 image** (the homepage hero). Everything else is a placeholder |
+|                              | Status                                                              |
+| ---------------------------- | ------------------------------------------------------------------- |
+| Public homepage              | ✅ 8 sections, entirely CMS-driven                                  |
+| Design system                | ✅ Complete + documented                                            |
+| SEO surface                  | ✅ `generateSiteMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`  |
+| Backend platform (Supabase)  | ✅ Provisioned, migrations `0001`–`0011`, validated live            |
+| CMS framework + 6 editors    | ✅ Validated end-to-end in the browser                              |
+| Public site reading from CMS | ✅ Phase 5D — homepage, shell and programmes                        |
+| **Programs archive**         | ✅ `/programs` + `/programs/[slug]` with per-programme galleries    |
+| **Real programme content**   | ✅ 4 programmes imported verbatim from the Event Documentation PDF  |
+| **Real impact figures**      | ✅ 80 children · 20 volunteers · 4 programmes                       |
+| **Hero image from the CMS**  | ✅ `pages.hero_media_id` (migration `0011`) — see §6                |
+| **Gallery**                  | ✅ Event-grouped `/gallery` + `/gallery/[slug]`; homepage rotates 4 |
+| Other inner pages            | ❌ Our Journey, Stories, Get Involved, Contact                      |
+| Photography                  | ⚠️ **19 event photos**; programme covers are still placeholders     |
 
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy`
 **Git:** branch `main`, in sync with `origin` →
 `https://github.com/Adibreal/Chayar-asroy.git`.
-Last commit `9388cbb` — _feat(cms): connect public site to Supabase CMS_.
-
-> ⚠️ **There is uncommitted work.** Everything after `9388cbb` — the programmes
-> feature, migrations `0009`–`0011`, the PDF import, the UI refinements and the
-> hero-image fix — is in the working tree but **not committed**. Committing it
-> should be the first action of the next session.
+Last commit `d6003c0` — _feat(programs): add programmes archive and connect hero
+image to the CMS_.
 
 > The remote is a **personal** GitHub account. Moving it to an org-owned
 > account is a launch task (see §8).
@@ -55,7 +52,7 @@ Last commit `9388cbb` — _feat(cms): connect public site to Supabase CMS_.
 ```bash
 pnpm lint         # ✅
 pnpm typecheck    # ✅
-pnpm build        # ✅ 20 routes — 7 static, 1 SSG (/programs/[slug]), 12 dynamic
+pnpm build        # ✅ 22 routes — 8 static, 2 SSG (programs + gallery), 12 dynamic
 pnpm exec prettier --check "**/*.{ts,tsx,md,json,mjs}"  # ✅
 ```
 
@@ -105,6 +102,7 @@ src/
 │   ├── layout.tsx            shell: Header + <main> + Footer
 │   ├── page.tsx              public homepage
 │   ├── programs/             page.tsx (archive) · [slug]/page.tsx (detail)
+│   ├── gallery/              page.tsx (events) · [slug]/page.tsx (one event)
 │   ├── not-found.tsx         public 404
 │   ├── globals.css           the three token layers live here
 │   ├── icon.svg              favicon (hand-authored tree mark)
@@ -126,7 +124,7 @@ src/
 │               supabase/ (client, server, public, middleware, admin, config),
 │               permissions
 ├── server/     auth, db, repositories, actions, storage, shared, media-url
-│   └── content/  site.ts · home.ts · programs.ts · media.ts
+│   └── content/  site.ts · home.ts · programs.ts · gallery.ts · media.ts
 │                 the PUBLIC read layer — every public page reads via here
 ├── types/      database.ts (derived), database.generated.ts, content.ts
 └── validation/ common, auth, media, content  (Zod — single source of truth)
@@ -158,8 +156,11 @@ PostgREST embeds (`media:media_id(…)`) type-check. Regenerate after every
 migration.
 
 **Public routes built:** `/` (homepage) · `/programs` (archive) ·
-`/programs/[slug]` (programme story). `/programs/[slug]` is prerendered via
-`generateStaticParams()`, so every published programme is static HTML.
+`/programs/[slug]` (programme story) · `/gallery` (events) · `/gallery/[slug]`
+(one event’s photographs).
+`/programs/[slug]` is prerendered via `generateStaticParams()`, so every
+published programme is static HTML. `/` carries `revalidate = 3600` — see the
+gallery decision in §6.
 
 **Admin routes built:** `/admin` (dashboard) · `/admin/pages` (homepage) ·
 `/admin/programs` (+ `new`, `[id]`) · `/admin/stories` (+ `new`, `[id]`) ·
@@ -305,6 +306,42 @@ shape. An inset mat cannot follow a blob.
 `aspect-[4/3]` at every breakpoint) — a height-driven or portrait frame made
 `object-cover` discard 17% of the picture on desktop and 40% on mobile.
 
+**A rotating homepage gallery via ISR, not a dynamic route.** The homepage shows
+four photographs drawn at random from the whole gallery. On a purely static page
+that draw happens once at build and never changes, so the freshness comes from
+`export const revalidate = 3600` on `app/page.tsx`, not from the shuffle —
+regeneration reshuffles. Making the route dynamic would achieve the same
+rotation at the cost of a database round trip for **every** visitor, which is
+exactly what the cookie-less public client exists to avoid. Shuffle happens in
+`getGalleryImages({ shuffle: true })` on a copy of the cached array, because the
+array is shared through `cache()` and reordering it in place would reorder it
+for every other caller in that render.
+
+**One gallery component, two configurations.** `GalleryCollection` takes an
+optional `previewCount`: a programme page passes 6 and gets a preview grid plus
+"view all"; `/gallery/[slug]` passes none and gets every image. Both open the
+same `GalleryLightbox`. The difference between the two pages is a prop, never a
+second component — and `Lightbox` (single image, homepage thumbnails) stays a
+separate, simpler thing on purpose.
+
+**The gallery is organised by event, from one query.** `getGalleryEvents()` is
+the only public read of `gallery_items`; the flat list the homepage shuffles,
+the single event `/gallery/[slug]` renders, and the images a programme page
+shows are all _derived from it in memory_ through `cache()`. So the event index,
+an event page, a programme page and the homepage preview cannot disagree about
+what is published, in what order, or under which consent rule.
+
+The grouping is not new data — it is `gallery_items.program_id` read back, the
+relationship the images were imported with. There is no album table, no
+duplicated image rows, and an image belongs to exactly one event. Images whose
+programme is draft, archived or absent fall into an ungrouped "More moments"
+bucket rather than vanishing or linking to a page that does not exist.
+
+**Two pages per event, on purpose.** `/programs/[slug]` is the story (narrative,
+volunteers, a six-image preview); `/gallery/[slug]` is the photographs. Each
+links to the other, and neither repeats the other's content — the event is
+written down once.
+
 **Layout follows the data, never a fixed assumption.** The impact ledger derives
 its grid columns from `entries.length` (it used to hardcode four, which left an
 empty column and pushed three metrics off-centre). Card grids use
@@ -344,6 +381,9 @@ empty column and pushed three metrics off-centre). Card grids use
 | `getPrograms({ featuredOnly?, limit? })`    | Published programmes as cards — used by **both** homepage and index  |
 | `getProgramSlugs()`                         | Slugs for `generateStaticParams()`                                   |
 | `getProgramBySlug(slug)`                    | One programme + composed `narrative` + its gallery                   |
+| `getGalleryEvents()`                        | Published photographs grouped by event — the **only** gallery query  |
+| `getGalleryEvent(slug)` / `…EventSlugs()`   | One event / slugs to prerender, both derived from the above          |
+| `getGalleryImages({ shuffle?, limit? })`    | The same photographs flattened — the homepage rotating four          |
 | `toImageAsset(client, media, fallbackAlt?)` | The one media-row → `ImageAsset` mapper (`content/media.ts`)         |
 
 All are `cache()`d per request and read through the **cookie-less**
@@ -356,7 +396,7 @@ Never call `supabase.from()` from a page or component.
 `Flow` · `Heading` `Text` `Emphasis` `Prose` · `Button` `Card` `Input` `Field` … ·
 `Reveal` `Stagger` `Floating` `AnimatedCounter` · brand motifs + `OrganicFrame` ·
 `ProjectCard` `ProjectGrid` `FeaturedProjects` · `GalleryGrid` `GalleryItem`
-`Lightbox` `GalleryLightbox` `ProgramGallery`
+`Lightbox` `GalleryLightbox` `GalleryCollection`
 
 `Lightbox` is the single-image modal (homepage preview); `GalleryLightbox` is
 the collection browser (arrow keys, swipe, prev/next, live counter, neighbour
@@ -374,12 +414,15 @@ should not carry.
 
 ## 8. Outstanding tasks
 
-### ✅ Done — provisioning, CMS integration, programmes, real content
+### ✅ Done — provisioning, CMS integration, programmes, real content, gallery
 
 Supabase project `Chayar-asroy` (`ap-northeast-2`, Postgres 17) is live and
 linked, migrations `0001`–`0011` applied, every CMS editor exercised in the
-browser, the public site reading from the CMS, the programmes archive built, and
-the four real programmes plus real impact figures imported.
+browser, the public site reading from the CMS, the programmes archive built, the
+four real programmes plus real impact figures imported, and **19 event
+photographs** imported into the media library and published to `/gallery` —
+consent confirmed by the organisation, each attached to its programme via
+`gallery_items.program_id`, each with hand-written alt text.
 
 Setting up a **second environment** (staging) follows this recipe:
 
@@ -396,19 +439,16 @@ Setting up a **second environment** (staging) follows this recipe:
 
 ### 🔴 Next priorities, in order
 
-1. **Commit and push the working tree.** Everything after `9388cbb` is
-   uncommitted. Do this before anything else.
-2. **Close the `fast-uri` advisory** (§2) — an `overrides` entry in both
+1. **Close the `fast-uri` advisory** (§2) — an `overrides` entry in both
    `pnpm-workspace.yaml` and `package.json`, then `pnpm install` and re-run the
    gate. Small, self-contained, and it belongs in its own commit.
-3. **Upload photography.** This is still the biggest visible gap: the library
-   holds **one image** (the homepage hero), so every programme cover, gallery
-   tile and the campaign band render branded placeholders. Alt text is now
-   required by the media details form, and any identifiable child needs
-   `consent_verified` ticked — the database refuses to publish otherwise. Attach
-   programme images via the Gallery editor's _Programme_ field.
-   **The existing hero image still has no alt text** — it renders the fallback
-   (the headline). Give it a real description.
+2. **Set programme cover images.** The gallery is populated, but `programs`
+   still have no `cover_media_id`, so every programme card on `/programs` and
+   the homepage renders a placeholder while real photographs of that programme
+   sit in the library. Pick one per programme in the Programs editor — the
+   cheapest remaining visual win.
+3. **Give the campaign band a background** (`site_settings.campaign_media_id`)
+   — the last placeholder image on the homepage.
 4. **Retire the remaining placeholder content** (see blockers below).
 5. **Transfer ownership** — repo, Supabase org, domain and Vercel project are on
    a personal account.
@@ -416,7 +456,9 @@ Setting up a **second environment** (staging) follows this recipe:
 
 ### Content blockers — required before public launch
 
-- **Guardian consent** for any identifiable child's photo or name.
+- **Guardian consent** for any identifiable child's photo or name. The 19
+  imported photographs were confirmed by the organisation on 4 August 2026 and
+  are marked `consent_verified`; anything added later needs the same check.
 - **Homepage copy is still placeholder** — hero, mission, voices, how-to-help
   and the campaign band all came from the retired `src/content/home.ts` and are
   flagged `TODO(org)` in `supabase/seed.sql`. Edit in the CMS, not in code.

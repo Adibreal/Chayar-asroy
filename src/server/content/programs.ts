@@ -6,6 +6,7 @@ import type { GalleryItemData } from "@/components/gallery";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { Program } from "@/types";
 
+import { getGalleryEvent } from "./gallery";
 import { toImageAsset } from "./media";
 
 /**
@@ -152,31 +153,18 @@ export const getProgramBySlug = cache(async (slug: string): Promise<ProgramDetai
     volunteers: string[] | null;
   };
 
-  // The programme's own gallery. Consent is enforced by a database trigger on
-  // publish, and re-checked here before a face is ever rendered.
-  const { data: images, error: galleryError } = await supabase
-    .from("gallery_items")
-    .select("id, caption, media:media_id(bucket_id, storage_path, alt_text, consent_verified)")
-    .eq("program_id", row.id)
-    .eq("status", "published")
-    .order("order_index", { ascending: true });
-
-  if (galleryError) {
-    console.error("[content] program gallery query failed:", galleryError.message);
-  }
-
-  const gallery = (images ?? []).flatMap((item): GalleryItemData[] => {
-    if (!item.media?.consent_verified) return [];
-    const image = toImageAsset(supabase, item.media);
-    return [
-      {
-        id: item.id,
-        ...(image ? { image } : {}),
-        ...(item.caption ? { caption: item.caption } : {}),
-        consentVerified: true,
-      },
-    ];
-  });
+  /*
+   * The programme's gallery comes from the gallery layer, not from a second
+   * query here.
+   *
+   * A programme's images and its `/gallery/<slug>` page are the same images —
+   * so they read the same function, and cannot drift in content, order or
+   * consent handling. It costs fetching the whole grouped gallery to render one
+   * programme, which is the right trade: these pages are prerendered, so that
+   * happens once at build, and `cache()` collapses it to a single fetch per
+   * render even though metadata and the page body both ask for it.
+   */
+  const gallery = (await getGalleryEvent(slug))?.images ?? [];
 
   const objectives = row.objectives ?? [];
 

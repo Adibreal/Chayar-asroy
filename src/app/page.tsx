@@ -24,6 +24,19 @@ export function generateMetadata() {
 }
 
 /**
+ * Regenerate hourly.
+ *
+ * The gallery preview is four images drawn at random from the whole gallery. On
+ * a purely static page that random draw happens once at build time and then
+ * never changes, so the "fresh over time" part comes from regeneration, not
+ * from the shuffle. An hour keeps the page varied across a day's visitors while
+ * still serving static HTML from the edge on every request — making the route
+ * dynamic instead would cost a database round trip per visitor to achieve the
+ * same thing. CMS saves still refresh it immediately via `revalidatePath("/")`.
+ */
+export const revalidate = 3600;
+
+/**
  * Donation categories are a fixed taxonomy paired with an icon, exactly like
  * the platform→glyph registry behind `SocialLinks`. The surrounding copy is
  * CMS-driven; the three categories themselves are structural.
@@ -64,7 +77,7 @@ export default async function HomePage() {
               <Reveal>
                 <HeroContent>
                   {copy.hero.eyebrow ? <HeroBadge>{copy.hero.eyebrow}</HeroBadge> : null}
-                  <Heading level={1} size="hero" className="text-antique-gold">
+                  <Heading level={1} size="hero">
                     {copy.hero.title}
                   </Heading>
                   {copy.hero.description ? (
@@ -167,18 +180,28 @@ export default async function HomePage() {
                 <SectionHeader
                   eyebrow={copy?.gallery.eyebrow ?? undefined}
                   title={copy?.gallery.title ?? undefined}
-                  action={
-                    isAvailable("/gallery") ? (
-                      <Button asChild variant="outline">
-                        <Link href="/gallery">View full gallery</Link>
-                      </Button>
-                    ) : null
-                  }
                 />
               </Reveal>
               <Reveal>
                 <GalleryGrid items={home.galleryPreview} />
               </Reveal>
+              {/*
+               * The link to the full gallery lives here rather than in the
+               * section header: one call to action, centred under the images it
+               * refers to, matching how the programmes section closes.
+               */}
+              {isAvailable("/gallery") ? (
+                <Reveal>
+                  <div className="flex justify-center">
+                    <Button asChild variant="outline">
+                      <Link href="/gallery">
+                        Explore all photos
+                        <ArrowRight className="size-4" aria-hidden />
+                      </Link>
+                    </Button>
+                  </div>
+                </Reveal>
+              ) : null}
             </Stack>
           </Container>
         </Section>

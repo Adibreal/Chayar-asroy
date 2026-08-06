@@ -18,19 +18,19 @@ do/don't — in [`DESIGN_SYSTEM.md`](../../DESIGN_SYSTEM.md).
 Composable, data-driven building blocks assembled into pages in later phases.
 Nothing here is page-specific.
 
-| Folder          | Components                                                                                     |
-| --------------- | ---------------------------------------------------------------------------------------------- |
-| `navigation/`   | `Header`, `Footer`, `MobileNav`, `NavLinks`, `SocialLinks`                                     |
-| `sections/`     | `SectionHeader`, `SectionIntro`, `SectionBackground`, `DecorativeLayer`, `SectionDivider`      |
-| `media/`        | `Media` (next/image + `ImageAsset`), `ImagePlaceholder`                                        |
-| `hero/`         | `Hero`, `HeroContent`, `HeroBadge`, `HeroActions`, `HeroMedia`, `HeroStats`                    |
-| `projects/`     | `ProjectCard`, `ProjectGrid`, `FeaturedProjects`, `ProjectCategories`                          |
-| `gallery/`      | `GalleryGrid`, `GalleryItem`, `Lightbox`, `GalleryLightbox`, `ProgramGallery`, `FeaturedImage` |
-| `testimonials/` | `TestimonialCard`, `StoryCard`, `QuoteSection`                                                 |
-| `impact/`       | `Stat`, `ImpactMetrics`, `ImpactColumns`, `AchievementHighlight`, `impactIcons`                |
-| `volunteer/`    | `OpportunityCard`, `VolunteerHighlights`, `VolunteerCTA`                                       |
-| `contact/`      | `ContactCard`, `ContactInfo`, `SocialContact`                                                  |
-| `cta/`          | `CTASection`, `CTABanner`, `PrimaryCta`, `CampaignCTA`                                         |
+| Folder          | Components                                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| `navigation/`   | `Header`, `Footer`, `MobileNav`, `NavLinks`, `SocialLinks`                                        |
+| `sections/`     | `SectionHeader`, `SectionIntro`, `SectionBackground`, `DecorativeLayer`, `SectionDivider`         |
+| `media/`        | `Media` (next/image + `ImageAsset`), `ImagePlaceholder`                                           |
+| `hero/`         | `Hero`, `HeroContent`, `HeroBadge`, `HeroActions`, `HeroMedia`, `HeroStats`                       |
+| `projects/`     | `ProjectCard`, `ProjectGrid`, `FeaturedProjects`, `ProjectCategories`                             |
+| `gallery/`      | `GalleryGrid`, `GalleryItem`, `Lightbox`, `GalleryLightbox`, `GalleryCollection`, `FeaturedImage` |
+| `testimonials/` | `TestimonialCard`, `StoryCard`, `QuoteSection`                                                    |
+| `impact/`       | `Stat`, `ImpactMetrics`, `ImpactColumns`, `AchievementHighlight`, `impactIcons`                   |
+| `volunteer/`    | `OpportunityCard`, `VolunteerHighlights`, `VolunteerCTA`                                          |
+| `contact/`      | `ContactCard`, `ContactInfo`, `SocialContact`                                                     |
+| `cta/`          | `CTASection`, `CTABanner`, `PrimaryCta`, `CampaignCTA`                                            |
 
 ¹ Interactive/Radix-backed components are Client Components; the rest are Server
 Components.

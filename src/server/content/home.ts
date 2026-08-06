@@ -9,6 +9,7 @@ import { toLines } from "@/lib/utils";
 import type { ImageAsset, Testimonial } from "@/types";
 import { homepageSchema } from "@/validation/content";
 
+import { getGalleryImages } from "./gallery";
 import { toImageAsset } from "./media";
 import { getPrograms, type ProgramSummary } from "./programs";
 
@@ -29,6 +30,9 @@ const HOME_SLUG = "home";
 
 /** The homepage preview is a single row of three, by design. */
 const HOMEPAGE_PROGRAM_COUNT = 3;
+
+/** …and a single row of four gallery images, drawn at random from the whole set. */
+const HOMEPAGE_GALLERY_COUNT = 4;
 
 export type HomeCopy = {
   hero: {
@@ -145,7 +149,7 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
   const supabase = createPublicClient();
   if (!supabase) return EMPTY;
 
-  const [pageResult, featuredPrograms, galleryResult, testimonialsResult, statsResult] =
+  const [pageResult, featuredPrograms, galleryPreview, testimonialsResult, statsResult] =
     await Promise.all([
       supabase
         .from("pages")
@@ -162,12 +166,13 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
       // three-card row, and "Explore all programs" leads to the full archive.
       // Featuring a fourth programme in the CMS must not change that layout.
       getPrograms({ featuredOnly: true, limit: HOMEPAGE_PROGRAM_COUNT }),
-      supabase
-        .from("gallery_items")
-        .select("id, caption, media:media_id(bucket_id, storage_path, alt_text, consent_verified)")
-        .eq("status", "published")
-        .order("order_index", { ascending: true })
-        .limit(8),
+      // Shared with /gallery — one query, one mapper, one consent rule.
+      //
+      // Shuffled and capped at four: the homepage shows a small, changing
+      // window onto the gallery rather than its first rows, so the section
+      // feels alive without anyone curating it. The set changes when the page
+      // is regenerated (see `revalidate` in `app/page.tsx`).
+      getGalleryImages({ shuffle: true, limit: HOMEPAGE_GALLERY_COUNT }),
       supabase
         .from("testimonials")
         .select(
@@ -184,7 +189,6 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
 
   for (const [name, result] of [
     ["pages", pageResult],
-    ["gallery_items", galleryResult],
     ["testimonials", testimonialsResult],
     ["impact_stats", statsResult],
   ] as const) {
@@ -205,20 +209,7 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
      */
     heroImage: toImageAsset(supabase, pageResult.data?.media ?? null, copy?.hero.title),
     featuredPrograms,
-    galleryPreview: (galleryResult.data ?? []).flatMap((row) => {
-      // Defence in depth: the database already refuses to publish an item
-      // without consent, but the public site re-checks before rendering a face.
-      if (!row.media?.consent_verified) return [];
-      const image = toImageAsset(supabase, row.media);
-      return [
-        {
-          id: row.id,
-          ...(image ? { image } : {}),
-          ...(row.caption ? { caption: row.caption } : {}),
-          consentVerified: true,
-        } satisfies GalleryItemData,
-      ];
-    }),
+    galleryPreview,
     testimonials: (testimonialsResult.data ?? []).map((row) => {
       const avatar = toImageAsset(supabase, row.media);
       return {

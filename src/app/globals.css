@@ -43,15 +43,11 @@
   --cobalt-600: #232a8a;
   --cobalt-700: #1b2170;
 
-  /* --- Marigold (energy / highlight — FILLS ONLY) ----------------
-     …with one exception. 700 is the first step dark enough to be legible
-     *as text* on paper: 4.65:1 on --paper-200, where 600 manages only 2.36:1.
-     Use 700 for type, the lighter steps for fills. */
+  /* --- Marigold (energy / highlight — FILLS ONLY) ---------------- */
   --marigold-100: #fbecc7;
   --marigold-400: #f2b63f;
   --marigold-500: #eea81e;
   --marigold-600: #d1900d;
-  --marigold-700: #8a6415;
 
   /* --- Forest (growth / secondary) ------------------------------- */
   --forest-100: #d4e6d8;
@@ -98,11 +94,6 @@
   --accent: var(--marigold-500);
   --accent-foreground: var(--ink-900);
   --accent-hover: var(--marigold-600);
-
-  /* Muted antique gold for display type on paper. Semantic (not a direct
-     primitive) so dark mode can flip it — a gold dark enough to read on cream
-     is far too dark to read on ink. */
-  --antique-gold: var(--marigold-700);
 
   --highlight: var(--orange-500);
   --highlight-foreground: #ffffff;
@@ -181,9 +172,6 @@
   --accent-foreground: #1b160f;
   --accent-hover: #f5c463;
 
-  /* Inverted: the light marigold step, 10.09:1 on the dark background. */
-  --antique-gold: #f2b63f;
-
   --highlight: #f0954a;
   --highlight-foreground: #1b160f;
   --highlight-hover: #f3a566;
@@ -255,7 +243,6 @@
   --color-ink: var(--ink-900);
   --color-cobalt: var(--cobalt-500);
   --color-marigold: var(--marigold-500);
-  --color-antique-gold: var(--antique-gold);
   --color-forest: var(--forest-500);
   --color-terracotta: var(--orange-500);
 

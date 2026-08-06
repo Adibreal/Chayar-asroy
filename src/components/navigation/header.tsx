@@ -44,13 +44,23 @@ export function Header({ site }: { site: SiteContent }) {
           <Logo name={site.name} nameBn={site.nameBn} />
         </Link>
 
-        <nav aria-label="Primary" className="hidden lg:block">
-          <NavLinks items={site.nav} />
-        </nav>
+        {/*
+          Navigation is grouped with the CTA on the right rather than centred.
+          With only a couple of built routes a centred nav floats in the middle
+          of a wide header with dead space either side; anchoring it beside the
+          call to action keeps the bar reading as logo-left / actions-right at
+          any number of links. `gap-6` separates the nav from the CTA so the
+          button still reads as the distinct, primary action.
+        */}
+        <div className="flex items-center gap-2 lg:gap-6">
+          <nav aria-label="Primary" className="hidden lg:block">
+            <NavLinks items={site.nav} />
+          </nav>
 
-        <div className="flex items-center gap-2">
-          <PrimaryCta cta={site.primaryCta} size="sm" className="hidden sm:inline-flex" />
-          <MobileNav site={site} />
+          <div className="flex items-center gap-2">
+            <PrimaryCta cta={site.primaryCta} size="sm" className="hidden sm:inline-flex" />
+            <MobileNav site={site} />
+          </div>
         </div>
       </div>
     </header>
