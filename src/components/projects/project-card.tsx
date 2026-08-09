@@ -7,7 +7,7 @@ import { Text } from "../typography/text";
 import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
 import { focusRing } from "@/lib/styles";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn, coverPositionClass, formatEventDate } from "@/lib/utils";
 import type { Program } from "@/types";
 
 /** Category → badge label + color (maps to the poster's ART / EDUCATION / COMMUNITY tags). */
@@ -70,7 +70,12 @@ export function ProjectCard({
         <Media
           image={project.coverImage}
           sizes="(min-width: 1024px) 33vw, 100vw"
-          className="transition-transform duration-[var(--duration-slow)] ease-[var(--ease-brand)] group-hover:scale-105"
+          className={cn(
+            "transition-transform duration-[var(--duration-slow)] ease-[var(--ease-brand)] group-hover:scale-105",
+            // A portrait photograph loses two-thirds of its height to this 16:10
+            // box, and centring it crops the faces off. See `coverPositionClass`.
+            coverPositionClass(project.coverImage),
+          )}
         />
         <Badge variant={meta.variant} className="absolute top-4 left-4">
           {meta.label}

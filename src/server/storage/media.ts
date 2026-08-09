@@ -26,6 +26,29 @@ function buildStoragePath(folder: MediaFolder, fileName: string): string {
 }
 
 /**
+ * An image's pixel dimensions, for the `media.width` / `media.height` columns.
+ *
+ * Those columns existed from the first migration but nothing wrote them, so
+ * every row was null and the app could not tell a portrait photograph from a
+ * landscape one — which is how a programme card ended up cropping three
+ * children's faces out of its cover. Recorded here so it stays true for
+ * everything uploaded from now on.
+ *
+ * Never fatal: a dimension we cannot read is worth less than a failed upload,
+ * and `coverPositionClass` treats unknown dimensions as "centre it".
+ */
+async function readDimensions(file: File): Promise<{ width?: number; height?: number }> {
+  try {
+    const sharp = (await import("sharp")).default;
+    const { width, height } = await sharp(Buffer.from(await file.arrayBuffer())).metadata();
+    return width && height ? { width, height } : {};
+  } catch (error) {
+    console.warn("[storage] could not read image dimensions:", error);
+    return {};
+  }
+}
+
+/**
  * Upload an image and register it in the media library.
  *
  * The single entry point for adding media — every uploader (hero, gallery,
@@ -66,6 +89,7 @@ export async function uploadMedia(input: unknown): Promise<Media> {
       alt_text: altText,
       caption,
       uploaded_by: user.id,
+      ...(await readDimensions(file)),
     })
     .select("*")
     .single();

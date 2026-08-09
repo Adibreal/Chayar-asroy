@@ -13,11 +13,18 @@ import type { ImageAsset } from "@/types";
 
 export type PublicClient = NonNullable<ReturnType<typeof createPublicClient>>;
 
-/** The shape every `media:` embed in this layer selects. */
+/**
+ * The shape every `media:` embed in this layer selects.
+ *
+ * `width`/`height` are nullable because the columns predate anything writing
+ * them; treat unknown dimensions as "assume nothing" rather than as an error.
+ */
 export type JoinedMedia = {
   bucket_id: string;
   storage_path: string;
   alt_text: string;
+  width?: number | null;
+  height?: number | null;
 } | null;
 
 /** Public URL for a joined media row. Synchronous — no extra round-trip. */
@@ -41,5 +48,12 @@ export function toImageAsset(
 ): ImageAsset | null {
   const src = mediaUrl(supabase, media);
   if (!src || !media) return null;
-  return { src, alt: media.alt_text.trim() || (fallbackAlt ?? "") };
+  return {
+    src,
+    alt: media.alt_text.trim() || (fallbackAlt ?? ""),
+    // Carried through so callers can reason about a photograph's *shape*
+    // without downloading it — see `coverPositionClass`.
+    ...(media.width ? { width: media.width } : {}),
+    ...(media.height ? { height: media.height } : {}),
+  };
 }

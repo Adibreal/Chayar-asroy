@@ -343,6 +343,22 @@ volunteers, a six-image preview); `/gallery/[slug]` is the photographs. Each
 links to the other, and neither repeats the other's content — the event is
 written down once.
 
+**A programme's cover is chosen, not guessed.** Cards used to render
+placeholders because editors attach photographs through the gallery rather than
+setting `cover_media_id`. `getBestImageForProgram()` (`src/lib/programs/`) fills
+the gap, and the order of its signals is the whole design: an explicit
+`cover_media_id` wins; otherwise the photographs **already linked to that
+programme** via `gallery_items.program_id` win, ranked for how well they work as
+a thumbnail (people beat still lifes); only a programme with no photographs of
+its own falls through to keyword matching, and only then to a category default.
+
+Text matching is the fallback, never the method — for the programmes that have
+photographs, inferring from a title would be inventing an answer the database
+already states. The function returns its `confidence` and a `reason`, and a
+`low` result logs a warning, so a weak choice is visible rather than silent. It
+costs no extra query: the candidates come from the `cache()`d
+`getGalleryEvents()`.
+
 **The decorative language is three supplied assets, transformed — never new
 artwork.** `src/assets/decor/` holds the official pieces cut out of the two
 design sheets in `design/`: the figure with brush and tool, a leaf spray, and a

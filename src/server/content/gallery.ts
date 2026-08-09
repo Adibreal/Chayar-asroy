@@ -85,7 +85,7 @@ export const getGalleryEvents = cache(async (): Promise<GalleryEvent[]> => {
   const { data, error } = await supabase
     .from("gallery_items")
     .select(
-      "id, caption, order_index, media:media_id(bucket_id, storage_path, alt_text, consent_verified), program:program_id(slug, title, summary, event_date, location, status)",
+      "id, caption, order_index, media:media_id(bucket_id, storage_path, alt_text, width, height, consent_verified), program:program_id(slug, title, summary, event_date, location, status)",
     )
     .eq("status", "published")
     .order("order_index", { ascending: true });

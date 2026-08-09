@@ -82,7 +82,9 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
   const [settingsResult, navResult, socialsResult] = await Promise.all([
     supabase
       .from("site_settings")
-      .select("*, campaignMedia:campaign_media_id(bucket_id, storage_path, alt_text)")
+      .select(
+        "*, campaignMedia:campaign_media_id(bucket_id, storage_path, alt_text, width, height)",
+      )
       .maybeSingle(),
     supabase
       .from("navigation_items")

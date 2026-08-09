@@ -6,7 +6,9 @@ import type { GalleryItemData } from "@/components/gallery";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { Program } from "@/types";
 
-import { getGalleryEvent } from "./gallery";
+import { getBestImageForProgram, type ImageCandidate } from "@/lib/programs";
+
+import { getGalleryEvent, getGalleryEvents } from "./gallery";
 import { toImageAsset } from "./media";
 
 /**
@@ -45,7 +47,7 @@ export type ProgramDetail = ProgramSummary & {
 };
 
 const LIST_COLUMNS =
-  "slug, title, category, summary, order_index, event_date, location, participation, media:cover_media_id(bucket_id, storage_path, alt_text)";
+  "slug, title, category, summary, order_index, event_date, location, participation, media:cover_media_id(bucket_id, storage_path, alt_text, width, height)";
 
 /** Rows shaped by `LIST_COLUMNS`, mapped to the card view model. */
 type ListRow = {
@@ -109,9 +111,48 @@ export const getPrograms = cache(
       return [];
     }
 
-    return (data ?? []).map((row) => toSummary(supabase, row as ListRow));
+    const summaries = (data ?? []).map((row) => toSummary(supabase, row as ListRow));
+    return withCoverImages(summaries);
   },
 );
+
+/**
+ * Give every programme a cover photograph.
+ *
+ * A programme's card should show its own work, not a placeholder, but an
+ * editor rarely sets `cover_media_id` — the photographs are attached to the
+ * programme through the gallery instead. So when the column is empty, the
+ * cover is *chosen* from what the CMS already knows (see
+ * `getBestImageForProgram`), and an explicitly-set cover always wins.
+ *
+ * The candidates come from `getGalleryEvents()`, which is `cache()`d and
+ * already fetched by the gallery pages — so on a page that renders both, this
+ * costs no query at all, and on `/programs` it costs one.
+ */
+async function withCoverImages(programs: ProgramSummary[]): Promise<ProgramSummary[]> {
+  if (programs.every((program) => program.coverImage)) return programs;
+
+  const events = await getGalleryEvents();
+  const candidates: ImageCandidate[] = events.flatMap((event) =>
+    event.images.flatMap((item) =>
+      item.image ? [{ image: item.image, programSlug: event.slug }] : [],
+    ),
+  );
+  if (candidates.length === 0) return programs;
+
+  return programs.map((program) => {
+    if (program.coverImage) return program;
+
+    const choice = getBestImageForProgram(program, candidates);
+    if (!choice.image) return program;
+
+    // A guess is worth surfacing; an exact match is not worth the noise.
+    if (choice.confidence === "low") {
+      console.warn(`[content] weak cover match for "${program.slug}": ${choice.reason}`);
+    }
+    return { ...program, coverImage: choice.image };
+  });
+}
 
 /** Slugs of every published programme — used to prerender the detail pages. */
 export const getProgramSlugs = cache(async (): Promise<string[]> => {

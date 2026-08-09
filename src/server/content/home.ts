@@ -155,7 +155,7 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
         .from("pages")
         // `hero_media_id` is the hero photograph; `og_media_id` is the
         // social-sharing card and is deliberately not read here.
-        .select("content, media:hero_media_id(bucket_id, storage_path, alt_text)")
+        .select("content, media:hero_media_id(bucket_id, storage_path, alt_text, width, height)")
         .eq("slug", HOME_SLUG)
         .eq("status", "published")
         .maybeSingle(),
@@ -176,7 +176,7 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
       supabase
         .from("testimonials")
         .select(
-          "quote, author_name, author_meta, media:avatar_media_id(bucket_id, storage_path, alt_text)",
+          "quote, author_name, author_meta, media:avatar_media_id(bucket_id, storage_path, alt_text, width, height)",
         )
         .eq("status", "published")
         .order("order_index", { ascending: true }),
