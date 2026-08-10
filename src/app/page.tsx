@@ -232,10 +232,12 @@ export default async function HomePage() {
               sizes="(min-width: 1024px) 14vw, 26vw"
               className="absolute top-[12%] right-[2%] hidden w-28 -scale-x-100 rotate-[65deg] opacity-30 lg:block xl:w-36"
             />
+            {/* A sun over the figures — the warmest mark in the set, on the
+                section that counts what the work added up to. */}
             <Decor
-              art="spiral"
-              sizes="8vw"
-              className="absolute bottom-[14%] left-[4%] hidden w-14 -rotate-[15deg] opacity-30 xl:block"
+              art="sunSpiral"
+              sizes="12vw"
+              className="absolute bottom-[10%] left-[3%] hidden w-28 opacity-20 xl:block"
             />
           </DecorativeLayer>
           <Container>
@@ -256,19 +258,10 @@ export default async function HomePage() {
         <Section id="how-to-help" spacing="lg" className="relative isolate overflow-hidden">
           <DecorativeBackground variant="scatter" />
           {/*
-            The figure's one appearance in the body of the page, and it is here
-            because here it means something: this is the section about giving,
-            and a figure with its arms up is the outcome of giving rather than
-            an ornament. Bottom-left, behind the donation cards, faint enough to
-            register only as warmth.
+            No figure is placed here directly: `scatter` already brings the
+            reaching pose, and two figures in one section read as a duplicated
+            sticker rather than as a pair — whichever poses they are.
           */}
-          <DecorativeLayer>
-            <Decor
-              art="figure"
-              sizes="16vw"
-              className="absolute -bottom-6 left-[1%] hidden w-28 -scale-x-100 opacity-30 xl:block"
-            />
-          </DecorativeLayer>
           <Container>
             <Split ratio="1-1" gap="xl" align="center">
               <Reveal>

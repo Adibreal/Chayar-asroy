@@ -1,8 +1,10 @@
 import Image from "next/image";
 
 import figure from "@/assets/decor/figure.webp";
+import figureReaching from "@/assets/decor/figure-reaching.webp";
 import leafSpray from "@/assets/decor/leaf-spray.webp";
 import spiral from "@/assets/decor/spiral.webp";
+import sunSpiral from "@/assets/decor/sun-spiral.webp";
 import { cn } from "@/lib/utils";
 
 /**
@@ -23,12 +25,23 @@ import { cn } from "@/lib/utils";
  * positioning context and `pointer-events-none`.
  */
 const artwork = {
-  /** The figure with brush and tool. The only asset depicting a person — spend it sparingly. */
+  /** The figure with brush and tool, arms raised. Spend it sparingly — see §6. */
   figure,
+  /**
+   * The figure again, leaning into a stride with leaves behind it. A second
+   * pose rather than a second character: use it where the arms-up figure is
+   * *not*, so the two never appear on the same screen reading as duplicates.
+   */
+  figureReaching,
   /** Five leaves on a curving stem. The workhorse: reads at any size. */
   leafSpray,
   /** Open spiral with a trailing tail. Best small, as punctuation. */
   spiral,
+  /**
+   * Bold concentric spiral. Much heavier than `spiral` — a statement mark for
+   * one large, faint placement per page, never punctuation.
+   */
+  sunSpiral,
 } as const;
 
 export type DecorArt = keyof typeof artwork;

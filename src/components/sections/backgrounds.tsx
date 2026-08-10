@@ -64,10 +64,12 @@ export function DecorativeBackground({ variant = "blobs", className }: Decorativ
             sizes="(min-width: 1024px) 14vw, 26vw"
             className="absolute bottom-[8%] left-[2%] hidden w-32 -scale-x-100 -rotate-12 opacity-30 xl:block"
           />
+          {/* The bold spiral, large and very faint — a hero can carry one
+              statement mark where a smaller section cannot. */}
           <Decor
-            art="spiral"
-            sizes="10vw"
-            className="absolute right-[10%] bottom-[14%] hidden w-16 opacity-40 lg:block"
+            art="sunSpiral"
+            sizes="(min-width: 1024px) 16vw, 28vw"
+            className="absolute right-[8%] bottom-[10%] hidden w-40 opacity-20 lg:block xl:w-48"
           />
         </>
       ) : variant === "blobs" ? (
@@ -102,6 +104,13 @@ export function DecorativeBackground({ variant = "blobs", className }: Decorativ
             art="spiral"
             sizes="10vw"
             className="absolute top-10 right-[7%] w-12 -scale-x-100 opacity-40 sm:w-16"
+          />
+          {/* The inner pages get the *reaching* pose, so they have a figure of
+              their own without echoing the arms-up one on the homepage. */}
+          <Decor
+            art="figureReaching"
+            sizes="(min-width: 1024px) 14vw, 24vw"
+            className="absolute right-[3%] -bottom-4 hidden w-32 opacity-25 xl:block"
           />
         </>
       )}

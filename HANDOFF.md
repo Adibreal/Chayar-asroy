@@ -359,15 +359,25 @@ already states. The function returns its `confidence` and a `reason`, and a
 costs no extra query: the candidates come from the `cache()`d
 `getGalleryEvents()`.
 
-**The decorative language is three supplied assets, transformed — never new
-artwork.** `src/assets/decor/` holds the official pieces cut out of the two
-design sheets in `design/`: the figure with brush and tool, a leaf spray, and a
-spiral. They are rendered through `<Decor>`, which is `alt=""` + `aria-hidden`
-by construction. **Variety comes from transforming these three** — scale,
-rotation, mirroring (`-scale-x-100`), opacity — which is what keeps every page
-related without any two looking alike. Do not add drawn SVG ornament back; the
-motifs in `motifs.tsx` survive only as `Blob`, used for the large off-canvas
-colour washes, which are tint fields rather than ornament.
+**The decorative language is the supplied assets, transformed — never new
+artwork.** `src/assets/decor/` holds the official pieces cut from the sheets in
+`design/`: the figure with brush and tool (arms raised), the same figure
+reaching mid-stride with leaves behind it, a leaf spray, a small open spiral,
+and a bold concentric sun-spiral. They are rendered through `<Decor>`, which is
+`alt=""` + `aria-hidden` by construction. **Variety comes from transforming
+them** — scale, rotation, mirroring (`-scale-x-100`), opacity — which is what
+keeps every page related without any two looking alike. Do not add drawn SVG
+ornament back; the motifs in `motifs.tsx` survive only as `Blob`, used for the
+large off-canvas colour washes, which are tint fields rather than ornament.
+
+Two rules the set enforces on itself. **One figure per section, ever** — the two
+poses are one character, so a section carrying both reads as a duplicated
+sticker rather than as a pair; the presets and the one-off placements are
+balanced so no section receives two (the homepage's three figures each sit
+alone, and `scatter` supplying the reaching pose is why `how-to-help` places
+none of its own). And **`sunSpiral` is a statement, not punctuation** — one
+large, faint placement per page at ~20% opacity, never at the size the small
+`spiral` is used at.
 
 Two things about the extraction are worth knowing before re-cutting anything
 from `design/`: the spiral shipped with a **transparency checkerboard
