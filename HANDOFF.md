@@ -1,7 +1,7 @@
 # Chayar Asroy — Project Handoff
 
 Everything a new contributor (or a new conversation) needs to continue this
-project. Reflects the state as of **17 August 2026**, re-audited against the
+project. Reflects the state as of **18 August 2026**, re-audited against the
 working tree, the live database and the deployed build on that date — every claim below was checked,
 not assumed. Where something could not be checked (anything requiring real
 pixels), it is called out as unverified rather than asserted.
@@ -27,12 +27,12 @@ solutions over clever ones.
 | Public homepage              | ✅ 8 sections, entirely CMS-driven                                  |
 | Design system                | ✅ Complete + documented                                            |
 | SEO surface                  | ✅ `generateSiteMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`  |
-| Backend platform (Supabase)  | ✅ Provisioned, migrations `0001`–`0011`, validated live            |
+| Backend platform (Supabase)  | ✅ Provisioned, migrations `0001`–`0012`, validated live            |
 | CMS framework + 6 editors    | ✅ Validated end-to-end in the browser                              |
 | Public site reading from CMS | ✅ Phase 5D — homepage, shell and programmes                        |
 | **Programs archive**         | ✅ `/programs` + `/programs/[slug]` with per-programme galleries    |
 | **Real programme content**   | ✅ 4 programmes imported verbatim from the Event Documentation PDF  |
-| **Real impact figures**      | ✅ 80 children · 20 volunteers · 4 programmes                       |
+| **Real impact figures**      | ✅ 80 children · 20 volunteers · 4 programmes · ৳24,500 · 37 gifts  |
 | **Hero image from the CMS**  | ✅ `pages.hero_media_id` (migration `0011`) — see §6                |
 | **Gallery**                  | ✅ Event-grouped `/gallery` + `/gallery/[slug]`; homepage rotates 4 |
 | **Programme card covers**    | ✅ Chosen from the gallery automatically — see §6                   |
@@ -43,7 +43,8 @@ solutions over clever ones.
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy`
 **Git:** branch `main`, **clean and in sync with `origin`** →
 `https://github.com/Adibreal/Chayar-asroy.git`.
-Last commit `6010a7a` — _fix(build): declare sharp as a direct dependency_.
+Last feature commit `8d1aa90` — _feat(impact): make the ledger a five-column
+row_.
 
 Everything in this document is committed and pushed; there is no work sitting in
 the working tree.
@@ -147,6 +148,7 @@ supabase/migrations/  0001 foundation · 0002 content · 0003 RLS
                       0009 programme story fields + gallery_items.program_id
                       0010 site_settings.campaign_media_id
                       0011 pages.hero_media_id (+ backfill out of jsonb)
+                      0012 impact_stats.prefix (leading symbol, e.g. ৳)
 supabase/seed.sql     idempotent starter data + placeholder homepage content
 
 scripts/  validate-backend.mjs     seed, anon RLS, storage, consent gate
@@ -208,9 +210,16 @@ Attach images in the Gallery editor by setting their _Programme_.
 - **Cobalt blue IS a core brand colour** (heavy in the posters), alongside
   marigold, forest green, orange, cream. The logo alone is warm-only — the
   broader system is warm **+ blue**.
-- **Donations are IN-KIND, not monetary** — books, notebooks, clothes, toys,
+- **Donations are primarily IN-KIND** — books, notebooks, clothes, toys,
   crayons. Collected via Dhaka agents / Pathao / Instagram inbox. **No payment
-  gateway is needed.**
+  gateway is needed** and none is built; nothing on the site accepts money.
+  - _Amended 18 August 2026:_ money is nonetheless raised and is now published —
+    the homepage ledger carries a **৳24,500** total alongside **37** donations
+    received, both figures supplied by the organisation. This does not
+    contradict the line above so much as qualify it: in-kind remains the
+    collection method the site describes, and the monetary total is reported,
+    not solicited. **How that money is collected is not documented** — do not
+    infer a channel, and ask before writing any copy that implies one.
 - **Real volunteer roles:** Graphic Designer, Content Writer, Planning &
   Logistics, Media & Documentation.
 - **Voice:** warm, hopeful, dignity-first. Children are creators, never objects
@@ -414,9 +423,26 @@ below `md`. Motifs are kept clear of the text block's bounding box: a motif
 inside the column reads as a typo rather than as decoration.
 
 **Layout follows the data, never a fixed assumption.** The impact ledger derives
-its grid columns from `entries.length` (it used to hardcode four, which left an
+its column count from `entries.length` (it used to hardcode four, which left an
 empty column and pushed three metrics off-centre). Card grids use
 `Stagger itemClassName="h-full"` so every card in a row matches height.
+
+**The impact ledger is flex, not grid — because of the row it cannot fill.**
+It tops out at five columns, and five wraps to 3 + 2 at `md`. CSS Grid packs
+that trailing pair into the leading tracks, hard against the left edge; centred
+flex-wrap centres it. The widths are exact percentages totalling 100%, so the
+widest breakpoint lays out identically to a grid and the divider rule
+(`index % columns`) is unchanged — this buys the ragged row and costs nothing.
+
+**Only the five-up case is retuned, and only from `lg`.** A money figure is far
+the widest string the ledger renders, and it — not the design — sets the
+ceiling: at `lg` a five-up column has ~162px of usable width, so the figure
+drops to 37px and the icon tile to 64/32px (the same 2:1 proportion). One
+through four keep the proven sizing untouched, so adding the fifth metric
+changed nothing about how the first three had already been signed off. Size this
+by measuring the longest value against the column, never by eye — a first pass
+sat at 40px and cleared the column by under 2px, which `group-hover:scale-[1.02]`
+alone would have overrun.
 
 ---
 
@@ -488,7 +514,7 @@ should not carry.
 ### ✅ Done — provisioning, CMS integration, programmes, real content, gallery
 
 Supabase project `Chayar-asroy` (`ap-northeast-2`, Postgres 17) is live and
-linked, migrations `0001`–`0011` applied, every CMS editor exercised in the
+linked, migrations `0001`–`0012` applied, every CMS editor exercised in the
 browser, the public site reading from the CMS, the programmes archive built, the
 four real programmes plus real impact figures imported, and **19 event
 photographs** imported into the media library and published to `/gallery` —
@@ -500,7 +526,7 @@ Setting up a **second environment** (staging) follows this recipe:
 1. Create a Supabase project; set `NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
 2. `pnpm dlx supabase init` (no `config.toml` is committed) → `login` → `link` →
-   `db push` (applies `0001`–`0011`). Run `seed.sql` **in the SQL editor** — see
+   `db push` (applies `0001`–`0012`). Run `seed.sql` **in the SQL editor** — see
    the seed gotcha in §9. Then regenerate types **into a new file**:
    `pnpm dlx supabase gen types typescript --linked > src/types/database.generated.ts`
    — **never** over `src/types/database.ts` (§9).
@@ -592,8 +618,11 @@ the column is `not null` and the PDF has no summary field.
   paragraph) is in the page file, unlike the homepage which reads from
   `pages.content`. It should move to a `pages` row with slug `programs`.
 - **Hardcoded SEO `keywords`** in `lib/seo/metadata.ts`, with no CMS home.
-- **Impact ledger orphan row.** At 5+ metrics the final partial row is
-  left-aligned, not centred — a CSS Grid constraint. Exact for 1–4.
+- ~~**Impact ledger orphan row.**~~ **Resolved.** The ledger moved from CSS Grid
+  to centred flex-wrap when it went to five columns, so a partly-filled final
+  row now centres itself at every width (verified: 3 + 2 at `md` sits with 121px
+  clear either side, where Grid gave 0 / 242). Six or more metrics still wrap,
+  but the trailing row is no longer left-aligned.
 - **Gallery ordering is numeric** (no drag-and-drop), and images are attached to
   a programme from the Gallery editor rather than inline on the programme.
 - **Mission pillars are fixed at two**; donation categories and impact-icon

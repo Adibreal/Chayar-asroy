@@ -11,9 +11,9 @@ volunteers. Optimise for maintainability, accessibility, security and clarity.
 Prefer boring, proven solutions. Never invent organisational facts or numbers.
 
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy` (Windows, PowerShell).
-Branch `main`, last commit `6010a7a` (_fix(build): declare sharp as a direct
-dependency_), remote `github.com/Adibreal/Chayar-asroy`. **Clean and pushed —
-nothing is waiting in the working tree.**
+Branch `main`, last feature commit `8d1aa90` (_feat(impact): make the ledger a
+five-column row_), remote `github.com/Adibreal/Chayar-asroy`. **Clean and
+pushed — nothing is waiting in the working tree.**
 
 ## Stack
 
@@ -52,7 +52,14 @@ Pins are deliberate: TypeScript **5.x**, ESLint **9.x** (not 7/10).
   Migrations `0009`/`0010`.
 
 - **Real content:** four programmes imported **verbatim** from the official
-  Event Documentation PDF; impact figures now real (80 / 20 / 4).
+  Event Documentation PDF; impact figures now real (80 / 20 / 4 / ৳24,500 / 37).
+
+- **Five-column impact ledger:** `impact_stats.prefix` (migration `0012`) lets a
+  figure carry a leading symbol, so `Money raised` renders `৳24,500` from a bare
+  integer. The ledger is centred flex-wrap, not grid, so the 3 + 2 wrap at `md`
+  centres instead of jamming left; only the five-up case shrinks the figure, and
+  only from `lg`. Icon names are a code registry (`impact-icons.tsx`) mirrored in
+  `server/content/home.ts` — adding one means editing both, never a migration.
 
 - **Hero image from the CMS:** `pages.hero_media_id` (migration `0011`). The
   picker used to write into `content` jsonb while the site read `og_media_id`,
@@ -95,7 +102,7 @@ src/server/   auth db repositories actions storage shared media-url
 src/server/content/  site.ts home.ts programs.ts gallery.ts media.ts ← PUBLIC read layer
 src/types/    database.ts (derived) database.generated.ts content.ts index.ts
 src/validation/  common auth media content   ← single source of input truth
-supabase/migrations/ 0001–0011 · seed.sql
+supabase/migrations/ 0001–0012 · seed.sql
 scripts/  validate-backend.mjs · validate-auth-roles.mjs (live-DB harnesses)
 ```
 
@@ -201,9 +208,12 @@ server list page reading `searchParams` + one form component (new & edit) in
 
 Instagram `@chayar.asroy` is login-walled — all brand knowledge came from
 user-supplied assets. **Cobalt blue is a core brand colour** with marigold,
-forest green, orange, cream. **Donations are in-kind, not monetary** (books,
+forest green, orange, cream. **Donations are primarily in-kind** (books,
 notebooks, clothes, toys, crayons; via Dhaka agents / Pathao / Instagram inbox)
-— no payment gateway. Volunteer roles: Graphic Designer, Content Writer,
+— no payment gateway, and nothing on the site accepts money. Money _is_ raised
+and is now reported (৳24,500 from 37 donations, on the impact ledger), but
+**how it is collected is undocumented** — never infer a channel in copy.
+Volunteer roles: Graphic Designer, Content Writer,
 Planning & Logistics, Media & Documentation. Voice: warm, hopeful,
 dignity-first; children are creators, never objects of pity. Logo:
 `public/branding/logo-trimmed.png`.
@@ -219,7 +229,7 @@ dignity-first; children are creators, never objects of pity. Logo:
 
 Setting up a _second_ environment (staging) follows the recipe in
 `docs/BACKEND.md` §1: `supabase init` → `login` → `link` → `db push`
-(`0001`–`0011`), run `seed.sql` **in the SQL editor**, regenerate types **into
+(`0001`–`0012`), run `seed.sql` **in the SQL editor**, regenerate types **into
 `database.generated.ts`**, create the first user in the dashboard, then
 `update public.profiles set role='super_admin' where email='…';`.
 
