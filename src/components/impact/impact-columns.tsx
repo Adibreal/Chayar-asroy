@@ -102,35 +102,43 @@ function growFromCenter(delay: number): Variants {
  */
 
 /**
- * Column count at the widest breakpoint, capped at four.
+ * Column count at the widest breakpoint, capped at five.
  *
- * Beyond four the numbers get too narrow to read, so further metrics wrap onto
- * a second row instead of shrinking.
+ * Five is the ceiling because it is the last count where a column still holds
+ * the longest value the ledger renders — a money figure like `৳45,000` — at a
+ * size that reads as a headline. Beyond five, further metrics wrap onto a
+ * second row instead of shrinking further.
  */
 function columnsAtWidest(count: number): number {
-  return Math.min(count, 4);
+  return Math.min(count, 5);
 }
 
 /**
- * Grid columns for a given number of metrics.
+ * Width of a single column, for a given number of metrics.
  *
- * The count is whatever the CMS publishes, so the track count follows it rather
- * than assuming four — publishing three used to leave an empty fourth column
- * that pushed the group off-centre. Written as whole class strings because
- * Tailwind only generates classes it can see literally.
+ * The count is whatever the CMS publishes, so the column width follows it
+ * rather than assuming a fixed number — publishing three used to leave an empty
+ * fourth column that pushed the group off-centre. Written as whole class
+ * strings because Tailwind only generates classes it can see literally.
+ *
+ * Five steps down through three and two rather than jumping straight from one:
+ * a five-up row at `md` leaves roughly 150px a column, which is narrower than
+ * the money figure itself.
  */
-function columnClasses(count: number): string {
+function columnWidthClasses(count: number): string {
   switch (columnsAtWidest(count)) {
     case 1:
-      return "grid-cols-1";
+      return "w-full";
     case 2:
-      return "grid-cols-1 sm:grid-cols-2";
+      return "w-full sm:w-1/2";
     case 3:
       // Two up on a small tablet, three once there is room — so three metrics
       // never leave a lone item stranded on a second row.
-      return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
+      return "w-full sm:w-1/2 md:w-1/3";
+    case 4:
+      return "w-full sm:w-1/2 lg:w-1/4";
     default:
-      return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+      return "w-full sm:w-1/2 md:w-1/3 lg:w-1/5";
   }
 }
 
@@ -241,13 +249,20 @@ export function ImpactColumns({
         </motion.span>
       </div>
 
-      {/* Columns */}
-      {/* More air above the columns than before: the numbers are much larger
-          now, so they need room to land rather than crowd the header. */}
+      {/* Columns
+       *
+       * More air above them than the header carries: the numbers are large, so
+       * they need room to land rather than crowd what introduces them.
+       *
+       * Flex rather than grid, so a partly-filled final row centres itself. A
+       * five-up ledger wraps to 3 + 2 at `md`, and CSS Grid packs that trailing
+       * pair into the first two tracks, hard against the left edge — the
+       * "orphan row" this section lived with while it topped out at four. The
+       * widths are exact percentages totalling 100%, so the widest breakpoint
+       * still lays out exactly as a grid would. */}
       <dl
         className={cn(
-          "mt-16 grid gap-y-14 sm:gap-y-16",
-          columnClasses(entries.length),
+          "mt-16 flex flex-wrap justify-center gap-y-14 sm:gap-y-16",
           // Only collapse the row gap while everything fits on one row.
           entries.length <= columnsAtWidest(entries.length) && "lg:gap-y-0",
         )}
@@ -256,6 +271,10 @@ export function ImpactColumns({
           <ImpactColumn
             key={entry.label}
             entry={entry}
+            widthClassName={columnWidthClasses(entries.length)}
+            // Five up is the tightest the row ever gets, and the only count
+            // that retunes the figure and the icon to keep a column breathing.
+            isFiveUp={columnsAtWidest(entries.length) === 5}
             // Starts a row, so it must not carry a left separator. Derived from
             // the real column count rather than "is it the very first", which
             // put a stray divider at the start of any wrapped row.
@@ -297,10 +316,16 @@ export function ImpactColumns({
  */
 function ImpactColumn({
   entry,
+  widthClassName,
+  isFiveUp,
   isRowStart,
   delay,
 }: {
   entry: ImpactEntry;
+  /** Exact percentage width for this metric count's breakpoint ladder. */
+  widthClassName: string;
+  /** Five columns at the widest breakpoint — the tightest configuration. */
+  isFiveUp: boolean;
   /** First column of its row — carries no left separator. */
   isRowStart: boolean;
   delay: number;
@@ -325,6 +350,12 @@ function ImpactColumn({
         // No `gap`: each element owns its own margin, so the number can sit
         // tight to its label while the icon keeps its distance above.
         "group relative flex flex-col items-center px-6 text-center",
+        widthClassName,
+        // Five up leaves ~240px a column at the container's full width. Some of
+        // the side padding goes back to the figure rather than to empty space
+        // beside the divider — the divider's own breathing room is the gap
+        // between columns, not this padding.
+        isFiveUp && "lg:px-4",
         // Hairline separators between columns; never at the start of a row.
         !isRowStart && "lg:border-l lg:border-border",
       )}
@@ -342,18 +373,22 @@ function ImpactColumn({
             // the circle. Exact values rather than the next scale step, which
             // would have jumped 25%.
             "grid size-[4.75rem] place-items-center rounded-full bg-surface-sunken/70 text-primary",
+            // Five up: 64px / 32px — the same 2:1 tile-to-glyph proportion,
+            // stepped down alongside the number so the circle never ends up
+            // outweighing the figure it introduces.
+            isFiveUp && "lg:size-16",
             // Hover: a small lift. Transform only.
             "transition-transform duration-[var(--duration-normal)] ease-[var(--ease-brand)]",
             "group-hover:-translate-y-1",
           )}
         >
-          <Icon className="size-[2.375rem]" />
+          <Icon className={cn("size-[2.375rem]", isFiveUp && "lg:size-8")} />
         </motion.span>
       ) : null}
 
       {/* Number + glow. Generous space above it, almost none below — the label
           should read as attached to its number, not as a sibling. */}
-      <dd className="relative mt-6">
+      <dd className={cn("relative mt-6", isFiveUp && "lg:mt-5")}>
         {/* One-shot glow, fired when this column's count settles. Opacity and
             scale only; the blur is static so nothing re-rasterises mid-animation. */}
         <motion.span
@@ -373,6 +408,13 @@ function ImpactColumn({
             // other sections rely on. Tight tracking keeps big numerals from
             // feeling loose.
             "block font-display text-[clamp(2.925rem,1.98rem+4.68vw,4.95rem)] leading-[0.9] font-semibold tracking-tight text-primary tabular-nums",
+            // Five up, from `lg` — the breakpoint where the row actually
+            // becomes five wide, so the smaller ladders keep the full size.
+            // Sized against `৳45,000`, the longest string the ledger renders:
+            // ~40px at 1024px, ~53px once the container caps at 1280px, both
+            // with room to spare in the column. Only this case is retuned;
+            // one through four keep the proven sizing untouched.
+            isFiveUp && "lg:text-[clamp(2.5rem,0.5rem+3.1vw,3.3rem)]",
             "transition-transform duration-[var(--duration-normal)] ease-[var(--ease-brand)]",
             "group-hover:scale-[1.02]",
           )}

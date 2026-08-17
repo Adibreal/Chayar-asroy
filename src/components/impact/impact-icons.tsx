@@ -74,12 +74,58 @@ export function CommunityIcon(props: IconProps) {
   );
 }
 
-/** Registry so content can reference an icon by name (CMS-friendly). */
+/** A collection jar gathering coins — what was raised. */
+export function MoneyIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      {/* The coin going in — the gesture, drawn above the jar so the icon
+          reads as *raising* rather than as a static container. */}
+      <circle cx="24" cy="7" r="3.5" />
+      {/* Lid, with its slot. */}
+      <path d="M12.5 14h23v5h-23z" />
+      <path d="M21 16.5h6" />
+      {/* Jar. */}
+      <path d="M15 19v15a5 5 0 0 0 5 5h8a5 5 0 0 0 5-5V19" />
+      {/* What has gathered inside. */}
+      <circle cx="24.25" cy="27" r="2.5" />
+      <circle cx="21" cy="32.5" r="2.5" />
+      <circle cx="27.5" cy="32.5" r="2.5" />
+    </svg>
+  );
+}
+
+/** A wrapped parcel — the donations that arrive. */
+export function DonationIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      {/* The bow, two loops meeting on the lid. */}
+      <path d="M24 17.5c-1.2-2.7-2.9-4.6-5-4.6a2.6 2.6 0 0 0 0 5.2z" />
+      <path d="M24 17.5c1.2-2.7 2.9-4.6 5-4.6a2.6 2.6 0 0 1 0 5.2z" />
+      {/* Lid. */}
+      <path d="M11.5 17.5h25v6h-25z" />
+      {/* Box. */}
+      <path d="M14 23.5v13a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-13" />
+      {/* Ribbon. */}
+      <path d="M24 23.5v15" />
+    </svg>
+  );
+}
+
+/**
+ * Registry so content can reference an icon by name (CMS-friendly).
+ *
+ * Adding a name here is the *whole* job of adding an icon — `impact_stats.icon`
+ * is free text precisely so a new glyph never needs a migration. Keep the
+ * mirror list in `src/server/content/home.ts` in step, which is what decides
+ * whether a stored name is recognised at all.
+ */
 export const impactIcons = {
   children: ChildrenIcon,
   hands: HandsIcon,
   workshop: WorkshopIcon,
   community: CommunityIcon,
+  money: MoneyIcon,
+  donation: DonationIcon,
 } as const;
 
 export type ImpactIconName = keyof typeof impactIcons;

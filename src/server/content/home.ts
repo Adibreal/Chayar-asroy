@@ -182,7 +182,7 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
         .order("order_index", { ascending: true }),
       supabase
         .from("impact_stats")
-        .select("label, value, suffix, icon")
+        .select("label, value, prefix, suffix, icon")
         .eq("is_visible", true)
         .order("order_index", { ascending: true }),
     ]);
@@ -222,13 +222,21 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
     impactStats: (statsResult.data ?? []).map((row) => ({
       value: row.value,
       label: row.label,
+      ...(row.prefix ? { prefix: row.prefix } : {}),
       ...(row.suffix ? { suffix: row.suffix } : {}),
       ...(isImpactIcon(row.icon) ? { icon: row.icon } : {}),
     })),
   };
 });
 
-const IMPACT_ICONS = ["children", "hands", "workshop", "community"] as const;
+/**
+ * Mirror of the `impactIcons` registry in `src/components/impact/impact-icons.tsx`.
+ *
+ * Duplicated on purpose: this module is server-only and the registry holds React
+ * components, so importing it here would pull the whole icon set into the
+ * server bundle to read four strings. Adding an icon means editing both.
+ */
+const IMPACT_ICONS = ["children", "hands", "workshop", "community", "money", "donation"] as const;
 
 /** Unknown icon names render without a glyph rather than crashing. */
 function isImpactIcon(value: string | null): value is (typeof IMPACT_ICONS)[number] {

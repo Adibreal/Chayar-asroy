@@ -99,6 +99,10 @@ export const impactStatSchema = z.object({
   label: requiredText(80),
   // Coerced for the same reason as `orderIndexSchema` — number inputs are strings.
   value: z.coerce.number().int().min(0).max(1_000_000),
+  // Rendered immediately before the value (`৳` on a money figure) and
+  // immediately after it (`+` on a rounded count). Both short by design: they
+  // are symbols, not words, and the number has to stay the thing you read.
+  prefix: optionalText(8),
   suffix: optionalText(8),
   orderIndex: orderIndexSchema.default(0),
   isVisible: z.boolean().default(true),

@@ -156,6 +156,7 @@ export type Database = {
           is_visible: boolean
           label: string
           order_index: number
+          prefix: string | null
           suffix: string | null
           updated_at: string
           value: number
@@ -167,6 +168,7 @@ export type Database = {
           is_visible?: boolean
           label: string
           order_index?: number
+          prefix?: string | null
           suffix?: string | null
           updated_at?: string
           value: number
@@ -178,6 +180,7 @@ export type Database = {
           is_visible?: boolean
           label?: string
           order_index?: number
+          prefix?: string | null
           suffix?: string | null
           updated_at?: string
           value?: number
