@@ -11,8 +11,9 @@ volunteers. Optimise for maintainability, accessibility, security and clarity.
 Prefer boring, proven solutions. Never invent organisational facts or numbers.
 
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy` (Windows, PowerShell).
-Branch `main`, last commit `d6003c0` (_feat(programs): add programmes archive and
-connect hero image to the CMS_), remote `github.com/Adibreal/Chayar-asroy`.
+Branch `main`, last commit `6010a7a` (_fix(build): declare sharp as a direct
+dependency_), remote `github.com/Adibreal/Chayar-asroy`. **Clean and pushed —
+nothing is waiting in the working tree.**
 
 ## Stack
 
@@ -63,10 +64,17 @@ Pins are deliberate: TypeScript **5.x**, ESLint **9.x** (not 7/10).
   `/gallery/[slug]` shows that event's photographs; the homepage shows four
   drawn at random per regeneration. One query backs all three.
 
+- **Programme card covers:** chosen automatically from the gallery by
+  `getBestImageForProgram()` — the CMS relationship first, keyword matching only
+  as a fallback. `cover_media_id` staying null is expected, not a gap.
+
+- **Decorative language:** five official assets in `src/assets/decor/`, cut from
+  the sheets in `design/` and rendered through `<Decor>`. Never add drawn SVG
+  ornament back; vary by scale/rotation/mirror/opacity instead.
+
 **Not done:** remaining inner pages (Our Journey, Stories, Get Involved,
-Contact); programme **cover images** and the campaign background are still
-placeholders even though real photos are now in the library; homepage copy and
-testimonials are still placeholder.
+Contact); **homepage copy and testimonials are still placeholder** — that is now
+the largest gap, and it is words from the organisation rather than code.
 
 ## Architecture
 
@@ -81,7 +89,8 @@ src/components/  ui layout typography brand motion | section folders | admin/*
 src/config/   env.ts (validated) · site.ts · admin-nav.ts
 src/hooks/    use-media-query · use-prefers-reduced-motion
 src/providers/  motion-provider (MotionConfig reducedMotion="user")
-src/lib/      utils(cn) styles polymorphic motion/* seo/* supabase/* permissions
+src/lib/      utils(cn, coverPositionClass) programs/ styles polymorphic
+              motion/* seo/* supabase/* permissions
 src/server/   auth db repositories actions storage shared media-url
 src/server/content/  site.ts home.ts programs.ts gallery.ts media.ts ← PUBLIC read layer
 src/types/    database.ts (derived) database.generated.ts content.ts index.ts
@@ -117,7 +126,8 @@ Floating AnimatedCounter` · brand motifs + `OrganicFrame` · `PrimaryCta`
 `getHomeContent()` · `getPrograms({featuredOnly,limit})` · `getProgramSlugs()` ·
 `getProgramBySlug(slug)` · `getGalleryEvents()` · `getGalleryEvent(slug)` ·
 `getGalleryImages({shuffle,limit})` · `toImageAsset()`
-— all in `@/server/content`.
+— all in `@/server/content`. Cover selection: `getBestImageForProgram()` in
+`@/lib/programs`.
 
 **New CMS editor =** `"use server"` file delegating to `createEntityActions` +
 server list page reading `searchParams` + one form component (new & edit) in
@@ -177,6 +187,10 @@ server list page reading `searchParams` + one form component (new & edit) in
   with the column the page reads.
 - `alt_text` is `not null` but `""` passes, and uploads set `""` on purpose.
   Required by the media details form; `toImageAsset` takes a `fallbackAlt`.
+- A green local build ≠ a green Vercel build. `sharp` was an **optional**
+  transitive dep of `next`, hoisted locally so imports resolved, absent on a
+  clean CI install. Never import what the project has not declared; check the
+  lockfile for `optional: true`.
 - `supabase db push --include-seed` will **not** re-run an applied seed; it only
   records the new hash. Run changed seed SQL in the dashboard SQL editor.
 - Measure contrast by compositing through a canvas — Tailwind opacity utilities
@@ -196,11 +210,9 @@ dignity-first; children are creators, never objects of pity. Logo:
 
 ## Immediate next steps
 
-1. **Close the `fast-uri` advisory** (see Validation below).
-2. **Set programme cover images** and the campaign background — real
-   photographs are in the library now, but `programs.cover_media_id` and
-   `site_settings.campaign_media_id` are still empty, so those render
-   placeholders. Cheapest remaining visual win.
+1. **Close the two advisories** (`fast-uri`, `nanoid` — see Validation below).
+   The only coding task left before launch.
+2. **Write the real homepage copy** (below) — the largest remaining gap.
 3. **Retire the remaining placeholder content** (below).
 4. **Transfer ownership** to org-owned accounts.
 5. Then: remaining inner pages, or Supabase-backed forms.
@@ -229,9 +241,15 @@ accounts before launch so nothing is lost when a student graduates.
 pnpm lint && pnpm typecheck && pnpm build
 ```
 
-All three verified green on 4 August 2026. `pnpm audit --prod` is **not** clean:
-one high advisory (`fast-uri` < 3.1.5, via `@hookform/resolvers > ajv`) — fix it
-with an `overrides` entry in `pnpm-workspace.yaml` **and** `package.json`.
+All three verified green on 17 August 2026 (22 routes — 8 static, 2 SSG, 12
+dynamic). `pnpm audit --prod` is **not** clean: two high advisories —
+`fast-uri` < 3.1.5 (via `@hookform/resolvers > ajv`) and `nanoid` < 3.3.18 (via
+`next > postcss`). Fix both with `overrides` entries in `pnpm-workspace.yaml`
+**and** `package.json`.
+
+Before blaming a failed deploy, run `pnpm install --frozen-lockfile` — lockfile
+drift fails Vercel with `ERR_PNPM_OUTDATED_LOCKFILE`, and a passing local build
+will not reveal it.
 
 State plainly what was verified vs assumed. Do not claim runtime behaviour that
 was not observed.

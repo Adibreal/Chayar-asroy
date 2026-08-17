@@ -1,8 +1,8 @@
 # Chayar Asroy — Project Handoff
 
 Everything a new contributor (or a new conversation) needs to continue this
-project. Reflects the state as of **4 August 2026**, re-audited against the
-working tree and the live database on that date — every claim below was checked,
+project. Reflects the state as of **17 August 2026**, re-audited against the
+working tree, the live database and the deployed build on that date — every claim below was checked,
 not assumed. Where something could not be checked (anything requiring real
 pixels), it is called out as unverified rather than asserted.
 
@@ -35,14 +35,18 @@ solutions over clever ones.
 | **Real impact figures**      | ✅ 80 children · 20 volunteers · 4 programmes                       |
 | **Hero image from the CMS**  | ✅ `pages.hero_media_id` (migration `0011`) — see §6                |
 | **Gallery**                  | ✅ Event-grouped `/gallery` + `/gallery/[slug]`; homepage rotates 4 |
+| **Programme card covers**    | ✅ Chosen from the gallery automatically — see §6                   |
+| **Decorative language**      | ✅ Five official assets in `src/assets/decor/` — see §6             |
 | Other inner pages            | ❌ Our Journey, Stories, Get Involved, Contact                      |
-| Photography                  | ⚠️ **19 event photos**; programme covers are still placeholders     |
+| Photography                  | ✅ 19 event photos — all placed, all with alt text and dimensions   |
 
 **Repo:** `C:\Users\Acer\Documents\Project\Chayar asroy`
-**Git:** branch `main`, in sync with `origin` →
+**Git:** branch `main`, **clean and in sync with `origin`** →
 `https://github.com/Adibreal/Chayar-asroy.git`.
-Last commit `d6003c0` — _feat(programs): add programmes archive and connect hero
-image to the CMS_.
+Last commit `6010a7a` — _fix(build): declare sharp as a direct dependency_.
+
+Everything in this document is committed and pushed; there is no work sitting in
+the working tree.
 
 > The remote is a **personal** GitHub account. Moving it to an org-owned
 > account is a launch task (see §8).
@@ -59,18 +63,22 @@ pnpm exec prettier --check "**/*.{ts,tsx,md,json,mjs}"  # ✅
 The build emits one warning: Next 16 deprecates the `middleware` file convention
 in favour of `proxy`. See §9.
 
-> 🔴 **`pnpm audit --prod` is no longer clean.** A new advisory landed since the
-> last check: **`fast-uri` < 3.1.5, high** — host confusion via a backslash
-> authority introducer ([GHSA-7p8r-x3mc-p8w7](https://github.com/advisories/GHSA-7p8r-x3mc-p8w7)),
-> reached through `@hookform/resolvers > ajv > fast-uri`. No dependency of ours
-> changed; the advisory did. Nothing in the repo passes user input to `fast-uri`
-> (it is `ajv`'s URI parser for `$ref` resolution in JSON Schema), so this is not
-> an active exploit path here — but it is production-reachable and should be
+> 🔴 **`pnpm audit --prod` reports two high advisories**, both from upstream
+> transitive packages rather than anything this project chose:
+>
+> | Package    | Range      | Reached through             | Advisory                                                                 |
+> | ---------- | ---------- | --------------------------- | ------------------------------------------------------------------------ |
+> | `fast-uri` | `< 3.1.5`  | `@hookform/resolvers > ajv` | [GHSA-7p8r-x3mc-p8w7](https://github.com/advisories/GHSA-7p8r-x3mc-p8w7) |
+> | `nanoid`   | `< 3.3.18` | `next > postcss`            | [GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8) |
+>
+> Neither is an active exploit path here — `fast-uri` is `ajv`'s URI parser for
+> JSON-Schema `$ref` resolution, and `nanoid`'s issue needs a custom generator,
+> which PostCSS does not use. Both are production-reachable, so both should be
 > closed with the project's existing override mechanism: add `fast-uri: ^3.1.5`
-> to `overrides` in **`pnpm-workspace.yaml`** _and_ the mirrored `overrides`
-> block in `package.json` (§9), then `pnpm install` and re-run the gate. Left
-> unapplied deliberately — it changes the lockfile, so it belongs in its own
-> commit rather than buried in a documentation update.
+> and `nanoid: ^3.3.18` to `overrides` in **`pnpm-workspace.yaml`** _and_ the
+> mirrored `overrides` block in `package.json` (§9), then `pnpm install` and
+> re-run the gate. Left unapplied deliberately — it moves the lockfile, so it
+> belongs in its own commit. **This is the smallest open task in the project.**
 
 ---
 
@@ -119,8 +127,9 @@ src/
 ├── config/     env.ts (validated), site.ts (infrastructure only), admin-nav.ts
 ├── hooks/      use-media-query, use-prefers-reduced-motion
 ├── providers/  motion-provider (MotionConfig reducedMotion="user")
-├── lib/        utils(cn, toLines/fromLines, formatEventDate), styles,
-│               polymorphic, motion/, seo/,
+├── lib/        utils(cn, toLines/fromLines, formatEventDate, coverPositionClass),
+│               programs/ (getBestImageForProgram — cover selection, §6),
+│               styles, polymorphic, motion/, seo/,
 │               supabase/ (client, server, public, middleware, admin, config),
 │               permissions
 ├── server/     auth, db, repositories, actions, storage, shared, media-url
@@ -501,29 +510,38 @@ Setting up a **second environment** (staging) follows this recipe:
 
 ### 🔴 Next priorities, in order
 
-1. **Close the `fast-uri` advisory** (§2) — an `overrides` entry in both
+The numbered-phase scheme ended at **5D**; what is left is a punch list, not a
+phase. Only the first item is a developer task — the rest need the organisation.
+
+1. **Close the two advisories** (§2) — `overrides` entries in both
    `pnpm-workspace.yaml` and `package.json`, then `pnpm install` and re-run the
-   gate. Small, self-contained, and it belongs in its own commit.
-2. **Set programme cover images.** The gallery is populated, but `programs`
-   still have no `cover_media_id`, so every programme card on `/programs` and
-   the homepage renders a placeholder while real photographs of that programme
-   sit in the library. Pick one per programme in the Programs editor — the
-   cheapest remaining visual win.
-3. **Give the campaign band a background** (`site_settings.campaign_media_id`)
-   — the last placeholder image on the homepage.
-4. **Retire the remaining placeholder content** (see blockers below).
-5. **Transfer ownership** — repo, Supabase org, domain and Vercel project are on
+   gate. Small, self-contained, its own commit. **The only coding task left
+   before launch.**
+2. **Write the real homepage copy** (see blockers below) — the largest
+   remaining gap, and it is words rather than code.
+3. **Retire the remaining placeholder content** — the invented testimonials and
+   the three draft programmes.
+4. **Transfer ownership** — repo, Supabase org, domain and Vercel project are on
    a personal account.
-6. Then: the remaining inner pages, or Supabase-backed forms.
+5. Then, if wanted: the remaining inner pages, or Supabase-backed forms.
+
+**Done since this list was last written:** programme cover images (now chosen
+automatically from the gallery — §6, so `cover_media_id` staying null is
+expected, not a gap) and the campaign band background (`gift-an-eid-02.jpg`).
 
 ### Content blockers — required before public launch
 
 - **Guardian consent** for any identifiable child's photo or name. The 19
   imported photographs were confirmed by the organisation on 4 August 2026 and
   are marked `consent_verified`; anything added later needs the same check.
-- **Homepage copy is still placeholder** — hero, mission, voices, how-to-help
-  and the campaign band all came from the retired `src/content/home.ts` and are
-  flagged `TODO(org)` in `supabase/seed.sql`. Edit in the CMS, not in code.
+- **Homepage copy is still mostly placeholder** — the hero headline, the voices
+  quote and the how-to-help copy all came from the retired `src/content/home.ts`
+  and are flagged `TODO(org)` in `supabase/seed.sql`. Edit in the CMS, not in
+  code. _Exception:_ the **Who Are We** passage is the organisation's own words,
+  supplied on 11 August 2026.
+- _Not a blocker, for the record:_ all 19 media rows carry real alt text and
+  pixel dimensions — verified 17 August 2026. Nothing in the library is
+  undescribed.
 - **Testimonials are invented** (Nusrat/Rafi, first-name + age placeholders),
   as is the volunteer quote in the Impact section.
 - **Three placeholder programmes** (`creative-workshops`, `learning-support`,
@@ -624,6 +642,26 @@ arrive in batches through the dropzone. Alt text is therefore required by the
 media **details** form (`updateMediaSchema`), and `toImageAsset` takes an
 optional `fallbackAlt` for rows stored before that rule existed — the homepage
 passes its headline. Check `alt`, not just presence, when auditing images.
+
+**A green local build does not mean a green Vercel build — check what is
+_declared_, not what resolves.** `src/server/storage/media.ts` imported `sharp`
+to read an upload's dimensions, and it worked locally for weeks: `sharp` arrives
+as an **optional** transitive dependency of `next`, and pnpm had installed and
+hoisted it to `node_modules/sharp`. Vercel's clean install did not have to
+materialise an optional dependency, so the build failed with _"Cannot find
+module 'sharp' or its corresponding type declarations"_.
+
+The tell is in the lockfile: the package's snapshot carried `optional: true`.
+Declaring it (`pnpm add sharp@^0.35.3`, matching the existing override) moves it
+into the lockfile's `importers` block — the section a `--frozen-lockfile`
+install actually reads — and drops that flag. **Never import a package the
+project has not declared, even when the editor resolves it.**
+
+Two related checks worth running before blaming Vercel: `pnpm install
+--frozen-lockfile` locally (lockfile drift fails a deploy with
+`ERR_PNPM_OUTDATED_LOCKFILE`), and whether the package is in Next's
+`server-external-packages.jsonc` — `sharp` is, which is why no
+`serverExternalPackages` entry was needed for its native binding.
 
 **Public reads must use `lib/supabase/public.ts`, not `server.ts`.** The latter
 reads `cookies()`, which opts the route out of static rendering; using it on the
