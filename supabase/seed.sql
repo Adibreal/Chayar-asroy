@@ -191,14 +191,24 @@ where not exists (
 -- was removed rather than guessed at. The ledger renders whatever it is given,
 -- and renders nothing at all when the table is empty, so dropping a metric you
 -- cannot back up is always safe.
-insert into public.impact_stats (label, value, suffix, icon, order_index, is_visible)
-select v.label, v.value, v.suffix, v.icon, v.order_index, v.is_visible
+--
+-- `Money raised` stores a bare integer and wears its symbol as a `prefix`
+-- (migration 0012). The amount is NOT scaled — 24500 is ৳24,500, not paisa —
+-- and the thousands separator is applied at render time by `AnimatedCounter`,
+-- so the column holds the number and nothing else.
+--
+-- Five is the ledger's widest supported row. A sixth figure still renders, but
+-- it wraps to a second row rather than shrinking the first.
+insert into public.impact_stats (label, value, prefix, suffix, icon, order_index, is_visible)
+select v.label, v.value, v.prefix, v.suffix, v.icon, v.order_index, v.is_visible
 from (
   values
-    ('Children reached', 80, null::text, 'children', 1, true),
-    ('Volunteers',       20, null::text, 'hands',    2, true),
-    ('Programs held',     4, null::text, 'workshop', 3, true)
-) as v (label, value, suffix, icon, order_index, is_visible)
+    ('Children reached',    80, null::text, null::text, 'children', 1, true),
+    ('Volunteers',          20, null::text, null::text, 'hands',    2, true),
+    ('Programs held',        4, null::text, null::text, 'workshop', 3, true),
+    ('Money raised',     24500, '৳',        null::text, 'money',    4, true),
+    ('Donations received',  37, null::text, null::text, 'donation', 5, true)
+) as v (label, value, prefix, suffix, icon, order_index, is_visible)
 where not exists (
   select 1 from public.impact_stats s where s.label = v.label
 );

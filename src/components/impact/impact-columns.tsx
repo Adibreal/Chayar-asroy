@@ -351,11 +351,12 @@ function ImpactColumn({
         // tight to its label while the icon keeps its distance above.
         "group relative flex flex-col items-center px-6 text-center",
         widthClassName,
-        // Five up leaves ~240px a column at the container's full width. Some of
+        // Five up leaves ~186px a column at `lg`, its tightest point. Some of
         // the side padding goes back to the figure rather than to empty space
         // beside the divider — the divider's own breathing room is the gap
-        // between columns, not this padding.
-        isFiveUp && "lg:px-4",
+        // between columns, not this padding. The figure is centred, so the
+        // clearance a reader actually sees is wider than the 12px this sets.
+        isFiveUp && "lg:px-3",
         // Hairline separators between columns; never at the start of a row.
         !isRowStart && "lg:border-l lg:border-border",
       )}
@@ -410,11 +411,18 @@ function ImpactColumn({
             "block font-display text-[clamp(2.925rem,1.98rem+4.68vw,4.95rem)] leading-[0.9] font-semibold tracking-tight text-primary tabular-nums",
             // Five up, from `lg` — the breakpoint where the row actually
             // becomes five wide, so the smaller ladders keep the full size.
-            // Sized against `৳45,000`, the longest string the ledger renders:
-            // ~40px at 1024px, ~53px once the container caps at 1280px, both
-            // with room to spare in the column. Only this case is retuned;
-            // one through four keep the proven sizing untouched.
-            isFiveUp && "lg:text-[clamp(2.5rem,0.5rem+3.1vw,3.3rem)]",
+            //
+            // Sized by measurement, not by eye: a money figure is far the
+            // widest string the ledger renders, and 1024px is where its column
+            // is narrowest (~162px of usable width). At 37px the figure lands
+            // near 140px, leaving room for the 1.02 hover scale and for a
+            // fallback face metering wider than the display font. An earlier
+            // pass sat at 40px and cleared the column by under 2px, which the
+            // hover state alone would have overrun.
+            //
+            // Only this case is retuned; one through four keep the proven
+            // sizing untouched.
+            isFiveUp && "lg:text-[clamp(2.3125rem,0.5625rem+2.734vw,2.75rem)]",
             "transition-transform duration-[var(--duration-normal)] ease-[var(--ease-brand)]",
             "group-hover:scale-[1.02]",
           )}
