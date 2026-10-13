@@ -16,10 +16,10 @@ import { storySchema, storyUpdateSchema, type StoryInput } from "@/validation/co
 /**
  * Create/edit a story.
  *
- * Rich text is deliberately **Markdown in a textarea**: no heavy editor
- * dependency, the content stays portable plain text, and there is no risk of a
- * WYSIWYG producing markup the public site can't style. Revisit only if
- * volunteers actually ask for it.
+ * The body is plain text in a textarea: no heavy editor dependency, and no
+ * risk of a WYSIWYG producing markup the public site can't style. The help
+ * text promises only what `<Prose>` renders — paragraphs and `*emphasis*` — and
+ * not Markdown, which the site has no renderer for.
  */
 export function StoryForm({ story, heroUrl }: { story?: Story; heroUrl?: string | null }) {
   const isEdit = Boolean(story);
@@ -48,7 +48,10 @@ export function StoryForm({ story, heroUrl }: { story?: Story; heroUrl?: string 
       redirectTo={isEdit ? undefined : "/admin/stories"}
       submitLabel={isEdit ? "Save changes" : "Create story"}
     >
-      <FormSection title="Story">
+      <FormSection
+        title="Story"
+        description="Stories aren't shown on the public website yet — they will appear once the Stories page is built. Drafts are safe to write now."
+      >
         <FormField name="title" label="Title" required>
           {({ field, controlProps }) => <Input {...field} {...controlProps} />}
         </FormField>
@@ -69,11 +72,9 @@ export function StoryForm({ story, heroUrl }: { story?: Story; heroUrl?: string 
         <FormField
           name="body"
           label="Body"
-          description="Markdown: **bold**, _italic_, # headings, - lists, [links](https://example.com)."
+          description="Leave a blank line between paragraphs. Wrap words in *asterisks* to emphasise them."
         >
-          {({ field, controlProps }) => (
-            <Textarea {...field} {...controlProps} rows={16} className="font-mono text-small" />
-          )}
+          {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={16} />}
         </FormField>
 
         <FormField

@@ -79,6 +79,20 @@ export function createRepository<T extends TableName>(table: T) {
       return toPaginated(rows, response.count ?? rows.length, page, pageSize);
     },
 
+    /**
+     * How many rows match, without fetching any (`head: true`). RLS applies, so
+     * this counts what the signed-in user is allowed to see.
+     */
+    async count(filters: ListOptions["filters"] = {}): Promise<number> {
+      let query = (await from()).select("*", { count: "exact", head: true });
+      for (const [column, value] of Object.entries(filters)) {
+        query = value === null ? query.is(column, null) : query.eq(column, value);
+      }
+      const { count, error } = await query;
+      if (error) unwrap({ data: null, error });
+      return count ?? 0;
+    },
+
     /** A single row by id. Throws `NOT_FOUND` when absent or not permitted. */
     async findById(id: string): Promise<Row<T>> {
       const response = await (await from()).select("*").eq("id", id).single();
