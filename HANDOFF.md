@@ -6,6 +6,11 @@ working tree, the live database and the deployed build on that date — every cl
 not assumed. Where something could not be checked (anything requiring real
 pixels), it is called out as unverified rather than asserted.
 
+> **Update — 14 October 2026.** §2a below lists what changed since: the site is
+> live on **https://chayarasroy.org**, the dependency advisories are closed,
+> CMS saves now reach every public page, and the project moved to a new
+> machine. Where §2a and an older section disagree, §2a is current.
+
 ---
 
 ## 1. What this is
@@ -80,6 +85,69 @@ in favour of `proxy`. See §9.
 > mirrored `overrides` block in `package.json` (§9), then `pnpm install` and
 > re-run the gate. Left unapplied deliberately — it moves the lockfile, so it
 > belongs in its own commit. **This is the smallest open task in the project.**
+
+---
+
+## 2a. Changes since 18 August (as of 14 October 2026)
+
+**Hosting and access**
+
+- **Live at https://chayarasroy.org** (registered at Porkbun; DNS `A @ →
+216.198.79.1`, HTTPS issued by Vercel). The Vercel URL
+  `chayar-asroy-cdqm.vercel.app` still works. **`www.chayarasroy.org` is not
+  configured yet** — add it in Vercel (redirect to the apex) plus its CNAME in
+  Porkbun.
+- Vercel env: `NEXT_PUBLIC_SITE_URL=https://chayarasroy.org` (type **Config**,
+  no trailing slash — it is baked in at build, so changing it needs a
+  redeploy), plus the two public Supabase values. `SUPABASE_SERVICE_ROLE_KEY`
+  is deliberately **not** in Vercel; nothing in the site uses it.
+- **Supabase public sign-ups are now OFF** (they were on, and every new
+  account defaults to `editor` — see `0001_foundation.sql`). Keep them off;
+  create volunteers from the Supabase dashboard. A migration making new
+  profiles powerless by default is still worth adding as a second lock.
+- Repo now lives at `C:\Users\PROJECT\CHAYAR ASROY\Chayar asroy`. Node 24,
+  pnpm 11.17 and Git are installed there; commits are authored as
+  `Adibreal <adibkazimohammad@gmail.com>`.
+
+**Fixed**
+
+- **Programme pages had no photo** — the automatic cover pick ran for cards
+  only; `getProgramBySlug()` now uses it too. Its hero frame also put the
+  aspect ratio on the fill image, so a real photo covered the title.
+- **CMS saves did not reach detail pages.** `revalidatePath("/programs")`
+  refreshes that one page, not `/programs/[slug]` beneath it — so edits, and
+  _unpublishing a child's photo_, stayed live until a deploy. Every content
+  save now calls `revalidatePublicSite()` (`src/server/actions/revalidate.ts`),
+  including media consent changes and deletes, which refreshed nothing public
+  before.
+- **Emptying a field and saving kept the old value** (Programs, Stories,
+  Gallery, Site settings), and a cleared date failed validation. See the
+  Server Action gotcha in §9; the fix is `toRowPayload(values, submitted)` in
+  `src/server/actions/row-payload.ts`, `nullableIdSchema` and `optionalDate()`.
+- **Dependencies:** `pnpm audit --prod` is clean. Next 16.2.11 → **16.3.8**
+  (three critical advisories, one in AVIF image optimisation, which this site
+  uses), sharp → 0.35.5, and per-major overrides for `fast-uri@3`, `nanoid@3`
+  and `source-map-js@1` — in **both** `pnpm-workspace.yaml` and `package.json`.
+
+**Improved**
+
+- Every page has its own title, URL and share image in link previews
+  (Site settings → _Social sharing image_, falling back to the homepage hero).
+  The sitemap lists every public page; `robots.txt` disallows `/admin`.
+- Middleware runs on `/admin` only — public pages no longer pay for an auth
+  call per view.
+- Content behind scroll-in animations is visible without JavaScript (a
+  `<noscript>` rule in `app/layout.tsx`). Public `app/error.tsx` added.
+- CMS dashboard shows live counts, what needs attention (missing alt text,
+  awaiting consent), working shortcuts and recently edited programs.
+- Removed the Site settings _Logo_ field — the public site never read it.
+  The Stories editor now says stories aren't public yet and no longer
+  promises Markdown.
+
+**Recommended next:** the homepage campaign band should use `gift-an-eid-03`
+(set in Site settings) — measured, it gives the band's text the best contrast
+of all 19 photos (5.86:1 desktop, 6.97:1 mobile) and is landscape, where the
+current portrait photo crops to a single face.
 
 ---
 
@@ -648,6 +716,18 @@ the column is `not null` and the PDF has no summary field.
 ---
 
 ## 9. Known limitations & gotchas
+
+**A Server Action drops object keys whose value is `undefined`.** React's
+reply decoder deletes them in transit, so `{ coverMediaId: undefined }` arrives
+as `{}`. Combined with `optionalText` turning `""` into `undefined`, emptying a
+field used to save as "no change". The rule now: forms send `null` to clear a
+link (`nullableIdSchema`), send `""` — never `|| undefined` — for emptied text,
+and update actions pass the raw input to `toRowPayload(values, submitted)`, which
+turns a submitted-but-empty field into `null`.
+
+**`revalidatePath(path)` refreshes exactly that path.** It does not reach the
+`[slug]` pages beneath it — that needs `'layout'` or the dynamic pattern. Don't
+hand-pick paths after a content write; call `revalidatePublicSite()`.
 
 **`supabase db push --include-seed` will not re-run a seed it has already
 applied.** It prints "Updating seed hash" and records the new hash _without

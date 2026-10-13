@@ -6,18 +6,18 @@ and community.
 
 ## Tech stack
 
-| Concern    | Choice                                        |
-| ---------- | --------------------------------------------- |
-| Framework  | Next.js 16 (App Router, React 19, RSC)        |
-| Language   | TypeScript 5 (strict)                         |
-| Styling    | Tailwind CSS v4 (CSS-first design tokens)     |
-| Backend    | Supabase — code complete, not yet provisioned |
-| Forms      | React Hook Form + Zod                         |
-| Animation  | Motion (`motion/react`)                       |
-| Validation | Zod + `@t3-oss/env-nextjs`                    |
-| Tooling    | ESLint 9 · Prettier · Husky · lint-staged     |
-| Packages   | **pnpm only** (the npm lockfile was removed)  |
-| Hosting    | Vercel (planned)                              |
+| Concern    | Choice                                       |
+| ---------- | -------------------------------------------- |
+| Framework  | Next.js 16 (App Router, React 19, RSC)       |
+| Language   | TypeScript 5 (strict)                        |
+| Styling    | Tailwind CSS v4 (CSS-first design tokens)    |
+| Backend    | Supabase — Postgres, Auth, Storage           |
+| Forms      | React Hook Form + Zod                        |
+| Animation  | Motion (`motion/react`)                      |
+| Validation | Zod + `@t3-oss/env-nextjs`                   |
+| Tooling    | ESLint 9 · Prettier · Husky · lint-staged    |
+| Packages   | **pnpm only** (the npm lockfile was removed) |
+| Hosting    | Vercel — live at https://chayarasroy.org     |
 
 ## Getting started
 
@@ -59,11 +59,11 @@ src/
 ├── components/     # ui · brand · layout · typography · motion · sections
 │                   #   plus admin/ — the CMS framework
 ├── config/         # env (validated) · site config · admin nav
-├── content/        # content-as-code (homepage)
 ├── hooks/          # reusable client hooks
 ├── lib/            # utils · styles · seo · motion · supabase clients
 ├── providers/      # app-wide React providers
 ├── server/         # auth · db · repositories · actions · storage (server-only)
+│                   #   plus content/ — the public site's read layer
 ├── types/          # domain + database types
 └── validation/     # Zod schemas — the single source of input truth
 ```
@@ -93,3 +93,6 @@ src/
 
 > The backend is optional at runtime: without Supabase credentials the site
 > still builds and renders. See `docs/BACKEND.md` to provision it.
+>
+> ⚠ With the credentials in `.env.local`, `pnpm dev` reads the **live**
+> database — anything saved in a local `/admin` changes the real website.
