@@ -20,8 +20,17 @@ minimumReleaseAgeExclude:
 # The pins below are the patched maintenance releases of each line. The package
 # is dev-only: `pnpm why brace-expansion --prod` returns nothing, so it never
 # reaches production.
+#
+# fast-uri (via @hookform/resolvers > ajv), nanoid and source-map-js (both via
+# next > postcss) are production-reachable, so each is patched here — check
+# `pnpm audit --prod` for the current advisories. Pinned per major for the same
+# reason as brace-expansion: only the vulnerable line is moved, and a future
+# major elsewhere is left alone.
 overrides:
-  sharp: ^0.35.3
+  sharp: ^0.35.5
   postcss: ^8.5.23
   brace-expansion@1: ^1.1.16
   brace-expansion@2: ^2.1.2
+  fast-uri@3: ^3.1.8
+  nanoid@3: ^3.3.18
+  source-map-js@1: ^1.2.2
