@@ -128,8 +128,11 @@ export const getPrograms = cache(
  * The candidates come from `getGalleryEvents()`, which is `cache()`d and
  * already fetched by the gallery pages — so on a page that renders both, this
  * costs no query at all, and on `/programs` it costs one.
+ *
+ * Generic so the detail page runs through it too: the card and the page it
+ * links to must show the same photograph.
  */
-async function withCoverImages(programs: ProgramSummary[]): Promise<ProgramSummary[]> {
+async function withCoverImages<T extends ProgramSummary>(programs: T[]): Promise<T[]> {
   if (programs.every((program) => program.coverImage)) return programs;
 
   const events = await getGalleryEvents();
@@ -219,7 +222,7 @@ export const getProgramBySlug = cache(async (slug: string): Promise<ProgramDetai
     .filter((part): part is string => Boolean(part))
     .join("\n\n");
 
-  return {
+  const detail: ProgramDetail = {
     ...toSummary(supabase, row),
     ...(row.body ? { body: row.body } : {}),
     activities: row.activities,
@@ -228,4 +231,10 @@ export const getProgramBySlug = cache(async (slug: string): Promise<ProgramDetai
     volunteers: row.volunteers ?? [],
     gallery,
   };
+
+  // Same cover selection as the card on `/programs` and the homepage — without
+  // it, a programme with no `cover_media_id` showed a photograph on its card
+  // and the placeholder on its own page.
+  const [withCover] = await withCoverImages([detail]);
+  return withCover ?? detail;
 });

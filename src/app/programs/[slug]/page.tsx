@@ -10,7 +10,7 @@ import { Reveal } from "@/components/motion";
 import { DecorativeBackground } from "@/components/sections";
 import { Heading, Prose, Text } from "@/components/typography";
 import { Badge, Card } from "@/components/ui";
-import { formatEventDate } from "@/lib/utils";
+import { coverPositionClass, formatEventDate } from "@/lib/utils";
 import { generateSiteMetadata } from "@/lib/seo/metadata";
 import { getProgramBySlug, getProgramSlugs } from "@/server/content/programs";
 import { getSiteContent } from "@/server/content/site";
@@ -85,11 +85,14 @@ export default async function ProgramPage({ params }: Params) {
         <Container>
           <Split ratio="2-3" gap="xl" align="center">
             <Reveal>
-              <div className="overflow-hidden rounded-3xl">
+              {/* `Media` fills its parent, so the parent owns the position and
+                  the ratio — on the image itself, the photograph escaped to the
+                  section and covered the title. Same frame as `ProjectCard`. */}
+              <div className="relative aspect-4/3 overflow-hidden rounded-3xl">
                 <Media
                   image={program.coverImage}
                   sizes="(min-width: 768px) 42vw, 100vw"
-                  className="aspect-4/3 w-full object-cover"
+                  className={coverPositionClass(program.coverImage)}
                   priority
                 />
               </div>
