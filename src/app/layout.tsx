@@ -57,6 +57,21 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       suppressHydrationWarning
     >
       <body className="min-h-dvh antialiased">
+        {/*
+          No-JS fallback for the scroll-in animations. Motion renders each
+          element's starting state — `opacity:0` — into the server HTML and only
+          animates it in once JavaScript runs, so without JS (blocked, failed,
+          or a slow connection timing out) most of the page stayed invisible.
+          This rule exists only when scripting is off, so animated visitors are
+          unaffected. Matches Motion's inline style, so every animated element
+          is covered without tagging each one.
+        */}
+        <noscript
+          dangerouslySetInnerHTML={{
+            __html:
+              '<style>main [style*="opacity:0"]{opacity:1!important;transform:none!important}</style>',
+          }}
+        />
         <a
           href="#main-content"
           className="sr-only rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[var(--z-toast)]"

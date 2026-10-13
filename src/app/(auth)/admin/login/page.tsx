@@ -25,7 +25,10 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ next?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next: requested } = await searchParams;
+  // Same-site paths only, matching `signInSchema` — otherwise
+  // `?next=https://…` would bounce a signed-in user to another website.
+  const next = requested?.startsWith("/") && !requested.startsWith("//") ? requested : undefined;
 
   if (isSupabaseConfigured()) {
     const user = await getCurrentUser();
