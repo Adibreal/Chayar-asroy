@@ -48,10 +48,12 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   /**
-   * Skip static assets and image optimisation — they never need a session and
-   * matching them would add latency to every asset request.
+   * The CMS only. The public site is static and the same for everyone — no
+   * public page reads the session — so running this on every visitor's
+   * request (as it used to) bought nothing but latency and an auth call per
+   * page view. The login page and the CMS's Server Actions all live under
+   * `/admin`, so sessions are still refreshed everywhere they are used.
+   * `:path*` also matches `/admin` itself.
    */
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|branding/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif)$).*)",
-  ],
+  matcher: ["/admin/:path*"],
 };
