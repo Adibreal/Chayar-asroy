@@ -11,10 +11,6 @@ const actions = createEntityActions({
   table: "gallery_items",
   createSchema: galleryItemSchema,
   updateSchema: galleryItemUpdateSchema,
-  // `/programs` covers the programme detail pages too: an image attached to a
-  // programme changes that programme's gallery, and layout-level revalidation
-  // refreshes the prerendered `[slug]` routes beneath it.
-  revalidate: ["/admin/gallery", "/gallery", "/programs", "/"],
 });
 
 export async function createGalleryItem(input: unknown) {

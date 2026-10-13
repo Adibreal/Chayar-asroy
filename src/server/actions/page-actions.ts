@@ -1,7 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
+import { revalidatePublicSite } from "@/server/actions/revalidate";
 import { requireEditor } from "@/server/auth/session";
 import { pagesRepository } from "@/server/repositories";
 import { AppError } from "@/server/shared/errors";
@@ -45,7 +44,9 @@ export async function saveHomePage(input: unknown): Promise<Result<Page>> {
       ? await pagesRepository.update(existing.id, row)
       : await pagesRepository.create(row);
 
-    revalidatePath("/");
+    // The homepage hero is also the site's fallback share image, used in every
+    // page's metadata — so this is not a homepage-only change.
+    revalidatePublicSite();
     return saved;
   });
 }

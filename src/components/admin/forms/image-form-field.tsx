@@ -47,7 +47,9 @@ export function ImageFormField<T extends FieldValues>({
           previewUrl={previewUrl}
           onChange={(media) => {
             // The id goes to the form; the URL is only for the preview.
-            field.onChange(media?.id ?? undefined);
+            // `null` (not `undefined`) on remove: a Server Action drops
+            // undefined keys in transit, so removing an image saved nothing.
+            field.onChange(media?.id ?? null);
             setPreviewUrl(media?.url ?? null);
           }}
         />

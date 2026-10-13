@@ -1,6 +1,5 @@
 import "server-only";
 
-import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 
 import { requireAdmin, requireEditor } from "@/server/auth/session";
@@ -9,24 +8,8 @@ import { AppError } from "@/server/shared/errors";
 import { attempt, type Result } from "@/server/shared/result";
 import type { Row, TableName } from "@/types/database";
 
-/**
- * Form input is camelCase; the database is snake_case. Converting
- * automatically removes a per-entity mapping function — and with it a whole
- * class of "I forgot to map that field" bugs.
- */
-function camelToSnake(key: string): string {
-  return key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-}
-
-/** Map validated input to a database row payload, dropping `undefined`. */
-export function toRowPayload(input: Record<string, unknown>): Record<string, unknown> {
-  const row: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(input)) {
-    if (value === undefined) continue;
-    row[camelToSnake(key)] = value;
-  }
-  return row;
-}
+import { revalidatePublicSite } from "./revalidate";
+import { toRowPayload } from "./row-payload";
 
 /**
  * Tables that actually carry an `updated_by` audit column, derived from the
@@ -78,8 +61,6 @@ type EntityActionConfig<T extends TableName> = {
   createSchema: z.ZodType;
   /** Update schema — must include `id`. */
   updateSchema: z.ZodType;
-  /** Paths to refresh after a successful write (admin list + public page). */
-  revalidate?: string[];
   /**
    * Hook to derive extra columns from the validated input, e.g. stamping
    * `published_at` when status flips to published.
@@ -104,9 +85,9 @@ type EntityActionConfig<T extends TableName> = {
 export function createEntityActions<T extends TableName>(config: EntityActionConfig<T>) {
   const repository = createRepository(config.table);
 
-  const refresh = () => {
-    for (const path of config.revalidate ?? []) revalidatePath(path);
-  };
+  // Every table here is shown somewhere on the public site. The CMS pages are
+  // dynamic, so the same call also refreshes the editor's own list.
+  const refresh = revalidatePublicSite;
 
   const parse = (schema: z.ZodType, input: unknown) => {
     const parsed = schema.safeParse(input);
@@ -118,8 +99,9 @@ export function createEntityActions<T extends TableName>(config: EntityActionCon
     return parsed.data as Record<string, unknown>;
   };
 
-  const buildRow = (input: Record<string, unknown>) => {
-    const row = toRowPayload(input);
+  /** `submitted` is the raw input — see `toRowPayload` for why it matters. */
+  const buildRow = (input: Record<string, unknown>, submitted?: unknown) => {
+    const row = toRowPayload(input, submitted);
     return config.beforeWrite ? config.beforeWrite(row) : row;
   };
 
@@ -140,9 +122,10 @@ export function createEntityActions<T extends TableName>(config: EntityActionCon
       return attempt(async () => {
         const user = await requireEditor();
         const { id, ...rest } = parse(config.updateSchema, input);
+        // Fields the editor emptied are cleared, not silently kept.
         const row = await repository.update(
           String(id),
-          withAuditStamp(config.table, buildRow(rest), user.id) as never,
+          withAuditStamp(config.table, buildRow(rest, input), user.id) as never,
         );
         refresh();
         return row;

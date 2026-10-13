@@ -9,6 +9,16 @@ import { toLines } from "@/lib/utils";
 
 export const uuidSchema = z.uuid("Must be a valid ID.");
 
+/**
+ * A link to another row — an image, a programme — that an editor can remove.
+ *
+ * `null` means "removed" and clears the column; `undefined` means "not part of
+ * this submission" and leaves it alone. Forms must send `null` to clear: a
+ * Server Action drops object keys whose value is `undefined` in transit, so an
+ * `undefined` never reaches the server at all.
+ */
+export const nullableIdSchema = uuidSchema.nullish();
+
 export const slugSchema = z
   .string()
   .min(1, "Required.")
@@ -21,12 +31,26 @@ export const emailSchema = z.email("Enter a valid email address.").max(254);
 export const requiredText = (max = 240) =>
   z.string().trim().min(1, "Required.").max(max, `Must be ${max} characters or fewer.`);
 
-/** Optional text that normalises "" to undefined, so empty inputs clear a column. */
+/**
+ * Optional text that normalises "" to undefined. On an update, `toRowPayload`
+ * turns a field that was submitted empty into `null`, so the column is cleared.
+ */
 export const optionalText = (max = 2000) =>
   z
     .string()
     .trim()
     .max(max, `Must be ${max} characters or fewer.`)
+    .optional()
+    .transform((value) => (value === "" ? undefined : value));
+
+/**
+ * An optional `YYYY-MM-DD` date. A cleared `<input type="date">` submits "",
+ * which a bare `z.iso.date()` rejects — so emptying the field used to fail
+ * validation instead of removing the date.
+ */
+export const optionalDate = () =>
+  z
+    .union([z.iso.date("Enter a valid date."), z.literal("")])
     .optional()
     .transform((value) => (value === "" ? undefined : value));
 

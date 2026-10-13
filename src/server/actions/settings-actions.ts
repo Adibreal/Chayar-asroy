@@ -1,9 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
+import { revalidatePublicSite } from "@/server/actions/revalidate";
+import { toRowPayload } from "@/server/actions/row-payload";
 import { requireAdmin } from "@/server/auth/session";
-import { toRowPayload } from "@/server/actions/entity-actions";
 import { siteSettingsRepository } from "@/server/repositories";
 import { AppError } from "@/server/shared/errors";
 import { attempt, type Result } from "@/server/shared/result";
@@ -33,7 +32,8 @@ export async function saveSiteSettings(input: unknown): Promise<Result<SiteSetti
       });
     }
 
-    const row = { ...toRowPayload(parsed.data), updated_by: user.id };
+    // `input` lets an emptied field clear its column (see `toRowPayload`).
+    const row = { ...toRowPayload(parsed.data, input), updated_by: user.id };
     const existing = await getSiteSettings();
 
     const saved = existing
@@ -41,7 +41,7 @@ export async function saveSiteSettings(input: unknown): Promise<Result<SiteSetti
       : await siteSettingsRepository.create(row as never);
 
     // Settings touch the whole site.
-    revalidatePath("/", "layout");
+    revalidatePublicSite();
     return saved;
   });
 }

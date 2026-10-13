@@ -4,6 +4,8 @@ import {
   contentStatusSchema,
   hrefSchema,
   linesSchema,
+  nullableIdSchema,
+  optionalDate,
   optionalText,
   orderIndexSchema,
   requiredText,
@@ -28,10 +30,10 @@ export const programSchema = z.object({
   body: optionalText(20000),
   /** What actually happened on the day, told as its own passage. */
   activities: optionalText(20000),
-  coverMediaId: uuidSchema.optional(),
+  coverMediaId: nullableIdSchema,
 
   // Facts of the event, shown beneath the title on the programme page.
-  eventDate: z.iso.date().optional(),
+  eventDate: optionalDate(),
   location: optionalText(120),
   /** Free text — "45 children, 8 volunteers". Never an invented number. */
   participation: optionalText(120),
@@ -52,7 +54,7 @@ export const storySchema = z.object({
   title: requiredText(160),
   excerpt: requiredText(300),
   body: optionalText(40000),
-  heroMediaId: uuidSchema.optional(),
+  heroMediaId: nullableIdSchema,
   authorName: optionalText(120),
   orderIndex: orderIndexSchema.default(0),
   isFeatured: z.boolean().default(false),
@@ -65,16 +67,16 @@ export const galleryAlbumSchema = z.object({
   slug: slugSchema,
   title: requiredText(120),
   description: optionalText(600),
-  eventDate: z.iso.date().optional(),
-  coverMediaId: uuidSchema.optional(),
+  eventDate: optionalDate(),
+  coverMediaId: nullableIdSchema,
   orderIndex: orderIndexSchema.default(0),
   status: contentStatusSchema.default("draft"),
 });
 
 export const galleryItemSchema = z.object({
-  albumId: uuidSchema.optional(),
+  albumId: nullableIdSchema,
   /** Owning programme — drives the gallery on that programme's page. */
-  programId: uuidSchema.optional(),
+  programId: nullableIdSchema,
   mediaId: uuidSchema,
   caption: optionalText(300),
   photographer: optionalText(120),
@@ -90,7 +92,7 @@ export const testimonialSchema = z.object({
   // Deliberately minimal attribution (first name + age) to protect children.
   authorName: requiredText(80),
   authorMeta: optionalText(80),
-  avatarMediaId: uuidSchema.optional(),
+  avatarMediaId: nullableIdSchema,
   orderIndex: orderIndexSchema.default(0),
   status: contentStatusSchema.default("draft"),
 });
@@ -136,7 +138,7 @@ export const siteSettingsSchema = z.object({
   contactEmail: z.email().optional().or(z.literal("")),
   contactPhone: optionalText(40),
   location: optionalText(120),
-  logoMediaId: uuidSchema.optional(),
+  logoMediaId: nullableIdSchema,
   primaryCtaLabel: optionalText(60),
   primaryCtaHref: hrefSchema.optional(),
   primaryCtaEnabled: z.boolean().default(true),
@@ -144,10 +146,10 @@ export const siteSettingsSchema = z.object({
   campaignTitle: optionalText(160),
   campaignDescription: optionalText(400),
   /** Background photograph for the campaign band; blurred behind a dark wash. */
-  campaignMediaId: uuidSchema.optional(),
+  campaignMediaId: nullableIdSchema,
   defaultMetaTitle: optionalText(70),
   defaultMetaDescription: optionalText(160),
-  defaultOgMediaId: uuidSchema.optional(),
+  defaultOgMediaId: nullableIdSchema,
 });
 
 /**
@@ -170,7 +172,7 @@ export const homepageSchema = z.object({
    * `saveHomePage` lifts it out before the rest is spread into the jsonb. Media
    * relationships stay real foreign keys so PostgREST can embed them.
    */
-  heroMediaId: uuidSchema.optional(),
+  heroMediaId: nullableIdSchema,
   heroSecondaryCtaLabel: optionalText(40),
   heroSecondaryCtaHref: hrefSchema.optional(),
 
@@ -224,7 +226,7 @@ export const homepageSchema = z.object({
    * `saveHomePage` deliberately leaves `og_media_id` untouched when it is
    * absent rather than writing `null` over whatever is there.
    */
-  ogMediaId: uuidSchema.optional(),
+  ogMediaId: nullableIdSchema,
 });
 
 export type HomepageInput = z.infer<typeof homepageSchema>;

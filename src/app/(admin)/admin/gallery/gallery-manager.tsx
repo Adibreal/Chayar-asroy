@@ -234,12 +234,15 @@ function EditGalleryItemPanel({
 
   const save = () => {
     startSave(async () => {
+      // Send what the editor sees: an emptied text field clears it on the
+      // server, and `null` detaches the programme. (`|| undefined` used to make
+      // both silently keep their old values.)
       const result = await updateGalleryItem({
         id: item.id,
-        caption: caption || undefined,
-        photographer: photographer || undefined,
-        category: category || undefined,
-        programId: programId || undefined,
+        caption,
+        photographer,
+        category,
+        programId: programId || null,
         orderIndex,
         isFeatured: featured,
         status,

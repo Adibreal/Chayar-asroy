@@ -8,7 +8,6 @@ const actions = createEntityActions({
   table: "stories",
   createSchema: storySchema,
   updateSchema: storyUpdateSchema,
-  revalidate: ["/admin/stories", "/stories", "/"],
   beforeWrite(row) {
     if (row.status === "published" && !row.published_at) {
       return { ...row, published_at: new Date().toISOString() };

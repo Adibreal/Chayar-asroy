@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePublicSite } from "@/server/actions/revalidate";
 import { requireEditor } from "@/server/auth/session";
 import { mediaRepository } from "@/server/repositories";
 import { deleteMedia, uploadMedia } from "@/server/storage/media";
@@ -96,7 +97,10 @@ export async function updateMediaAction(input: unknown): Promise<Result<Media>> 
       consent_verified: consentVerified,
     });
 
-    revalidatePath("/admin/media");
+    // Alt text and consent are read by every public page that shows this
+    // image. Withdrawing consent must take the photograph down everywhere now,
+    // not at the next deploy.
+    revalidatePublicSite();
     return row;
   });
 }
@@ -105,7 +109,8 @@ export async function updateMediaAction(input: unknown): Promise<Result<Media>> 
 export async function deleteMediaAction(id: string): Promise<Result<{ id: string }>> {
   return attempt(async () => {
     await deleteMedia(id);
-    revalidatePath("/admin/media");
+    // A deleted file must not linger on a prerendered page as a broken image.
+    revalidatePublicSite();
     return { id };
   });
 }
