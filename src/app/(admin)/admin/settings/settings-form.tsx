@@ -22,12 +22,12 @@ import { siteSettingsSchema, type SiteSettingsInput } from "@/validation/content
  */
 export function SettingsForm({
   settings,
-  logoUrl,
   campaignUrl,
+  shareImageUrl,
 }: {
   settings: SiteSettings | null;
-  logoUrl?: string | null;
   campaignUrl?: string | null;
+  shareImageUrl?: string | null;
 }) {
   const defaultValues = {
     orgName: settings?.org_name ?? "Chayar Asroy",
@@ -37,7 +37,6 @@ export function SettingsForm({
     contactEmail: settings?.contact_email ?? "",
     contactPhone: settings?.contact_phone ?? "",
     location: settings?.location ?? "",
-    logoMediaId: settings?.logo_media_id ?? undefined,
     primaryCtaLabel: settings?.primary_cta_label ?? "",
     primaryCtaHref: settings?.primary_cta_href ?? "",
     primaryCtaEnabled: settings?.primary_cta_enabled ?? true,
@@ -47,6 +46,7 @@ export function SettingsForm({
     campaignMediaId: settings?.campaign_media_id ?? undefined,
     defaultMetaTitle: settings?.default_meta_title ?? "",
     defaultMetaDescription: settings?.default_meta_description ?? "",
+    defaultOgMediaId: settings?.default_og_media_id ?? undefined,
   } as never;
 
   return (
@@ -76,9 +76,12 @@ export function SettingsForm({
         </FormField>
       </FormSection>
 
-      <FormSection title="Logo">
-        <ImageFormField name="logoMediaId" label="Logo" folder="general" initialUrl={logoUrl} />
-      </FormSection>
+      {/*
+        No logo field: the logo is artwork committed to the repo
+        (`siteConfig.logo`), and the public site never read `logo_media_id` —
+        so the field saved happily and changed nothing. Leaving it out of the
+        form also leaves the column untouched on save.
+      */}
 
       <FormSection title="Contact" description="Shown in the footer and on the contact page.">
         <FormField name="contactEmail" label="Email">
@@ -154,6 +157,18 @@ export function SettingsForm({
             <Textarea {...field} {...controlProps} rows={2} maxLength={160} />
           )}
         </FormField>
+
+        <ImageFormField
+          name="defaultOgMediaId"
+          label="Social sharing image"
+          folder="general"
+          initialUrl={shareImageUrl}
+        />
+        <p className="text-caption text-muted-foreground">
+          The picture shown when a link to the site is shared on Facebook, WhatsApp or Instagram.
+          Leave it empty to use the homepage hero photograph. Programme pages always use their own
+          photo.
+        </p>
       </FormSection>
     </EditorForm>
   );

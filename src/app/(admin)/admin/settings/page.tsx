@@ -12,9 +12,9 @@ export default async function SettingsPage() {
   await requireAdmin();
   const settings = await getSiteSettings();
 
-  const [logoUrl, campaignUrl] = await Promise.all([
-    getMediaUrl(settings?.logo_media_id),
+  const [campaignUrl, shareImageUrl] = await Promise.all([
     getMediaUrl(settings?.campaign_media_id),
+    getMediaUrl(settings?.default_og_media_id),
   ]);
 
   return (
@@ -23,7 +23,7 @@ export default async function SettingsPage() {
         title="Site settings"
         description="Organisation details, contact information and site-wide defaults."
       />
-      <SettingsForm settings={settings} logoUrl={logoUrl} campaignUrl={campaignUrl} />
+      <SettingsForm settings={settings} campaignUrl={campaignUrl} shareImageUrl={shareImageUrl} />
     </>
   );
 }

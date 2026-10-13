@@ -47,6 +47,12 @@ export type SiteContent = {
     image: ImageAsset | null;
   } | null;
   seo: { metaTitle: string | null; metaDescription: string | null };
+  /**
+   * The picture a shared link shows (Open Graph / Twitter card) on every page
+   * that has none of its own: the image chosen in Site settings, else the
+   * homepage hero photograph. Null only when neither exists.
+   */
+  shareImage: ImageAsset | null;
   nav: SiteNavItem[];
   socials: SiteSocial[];
 };
@@ -70,20 +76,24 @@ function fallbackContent(): SiteContent {
     primaryCta: null,
     campaign: null,
     seo: { metaTitle: null, metaDescription: null },
+    shareImage: null,
     nav: [],
     socials: [],
   };
 }
 
+/** The columns every `media:` embed in this module selects. */
+const MEDIA_COLUMNS = "bucket_id, storage_path, alt_text, width, height";
+
 export const getSiteContent = cache(async (): Promise<SiteContent> => {
   const supabase = createPublicClient();
   if (!supabase) return fallbackContent();
 
-  const [settingsResult, navResult, socialsResult] = await Promise.all([
+  const [settingsResult, navResult, socialsResult, homeHeroResult] = await Promise.all([
     supabase
       .from("site_settings")
       .select(
-        "*, campaignMedia:campaign_media_id(bucket_id, storage_path, alt_text, width, height)",
+        `*, campaignMedia:campaign_media_id(${MEDIA_COLUMNS}), shareMedia:default_og_media_id(${MEDIA_COLUMNS})`,
       )
       .maybeSingle(),
     supabase
@@ -95,6 +105,14 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
       .select("platform, label, href, order_index")
       .eq("is_visible", true)
       .order("order_index", { ascending: true }),
+    // Fallback share image. Public pages are static, so this runs at build or
+    // regeneration time, not once per visitor.
+    supabase
+      .from("pages")
+      .select(`media:hero_media_id(${MEDIA_COLUMNS})`)
+      .eq("slug", "home")
+      .eq("status", "published")
+      .maybeSingle(),
   ]);
 
   const settings = settingsResult.data;
@@ -136,6 +154,9 @@ export const getSiteContent = cache(async (): Promise<SiteContent> => {
       metaTitle: settings.default_meta_title,
       metaDescription: settings.default_meta_description,
     },
+    shareImage:
+      toImageAsset(supabase, settings.shareMedia) ??
+      toImageAsset(supabase, homeHeroResult.data?.media ?? null),
     nav: (navResult.data ?? []).map((item) => ({
       label: item.label,
       href: item.href,

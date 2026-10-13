@@ -19,6 +19,25 @@ export function buildMetadata(site: SiteContent, overrides: Metadata = {}): Meta
   const title = site.seo.metaTitle ?? titleBase;
   const description = site.seo.metaDescription ?? site.description ?? undefined;
 
+  // What a shared link shows is built from the page's own title, description
+  // and address — previously every page advertised the homepage's.
+  const { openGraph, twitter, ...rest } = overrides;
+  const pageTitle = typeof overrides.title === "string" ? overrides.title : title;
+  const pageDescription = overrides.description ?? description;
+  const canonical = overrides.alternates?.canonical;
+  const pageUrl =
+    typeof canonical === "string" || canonical instanceof URL ? canonical : siteConfig.url;
+  const images = site.shareImage
+    ? [
+        {
+          url: site.shareImage.src,
+          alt: site.shareImage.alt,
+          ...(site.shareImage.width ? { width: site.shareImage.width } : {}),
+          ...(site.shareImage.height ? { height: site.shareImage.height } : {}),
+        },
+      ]
+    : undefined;
+
   return {
     metadataBase: new URL(siteConfig.url),
     title: {
@@ -41,22 +60,29 @@ export function buildMetadata(site: SiteContent, overrides: Metadata = {}): Meta
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: siteConfig.url,
+      url: pageUrl,
       siteName: site.name,
-      title,
-      description,
+      title: pageTitle,
+      description: pageDescription ?? undefined,
+      ...(images ? { images } : {}),
+      // A page's own Open Graph fields (a programme's cover photo) win, but
+      // merge into the defaults instead of replacing them wholesale.
+      ...openGraph,
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
-    },
+      title: pageTitle,
+      description: pageDescription ?? undefined,
+      ...(images ? { images } : {}),
+      ...(openGraph?.images ? { images: openGraph.images } : {}),
+      ...twitter,
+    } as Metadata["twitter"],
     robots: {
       index: true,
       follow: true,
       googleBot: { index: true, follow: true },
     },
-    ...overrides,
+    ...rest,
   };
 }
 
