@@ -81,7 +81,13 @@ function toSummary(
 }
 
 /**
- * Published programmes, in display order.
+ * Published programmes, newest first.
+ *
+ * Ordered by `event_date` rather than by the hand-set `order_index`, so a newly
+ * added programme leads the archive and the homepage without anyone having to
+ * renumber the others — `order_index` now only breaks ties between programmes
+ * on the same date. Undated programmes sort last. (`/gallery` already orders
+ * its events newest first, so the two pages tell the story the same way.)
  *
  * @param featuredOnly restricts to the homepage's curated set. Which programmes
  * are featured is the `is_featured` flag in the CMS — never a hardcoded list.
@@ -100,6 +106,7 @@ export const getPrograms = cache(
       .from("programs")
       .select(LIST_COLUMNS)
       .eq("status", "published")
+      .order("event_date", { ascending: false, nullsFirst: false })
       .order("order_index", { ascending: true });
 
     if (featuredOnly) query = query.eq("is_featured", true);

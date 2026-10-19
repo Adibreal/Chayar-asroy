@@ -18,8 +18,9 @@ export default async function ProgramsPage({
   const user = await requireEditor();
   const { q, sort, page } = await searchParams;
 
-  const descending = sort?.startsWith("-") ?? false;
-  const orderBy = sort ? sort.replace(/^-/, "") : "order_index";
+  // Unsorted, the list matches the website: newest event first.
+  const descending = sort ? sort.startsWith("-") : true;
+  const orderBy = sort ? sort.replace(/^-/, "") : "event_date";
 
   const result = await programsRepository.list({
     page: page ? Number(page) : 1,

@@ -191,7 +191,7 @@ export function ProgramForm({
         <FormField
           name="orderIndex"
           label="Display order"
-          description="Lower numbers appear first."
+          description="The website lists programmes newest first by date. This number only matters for programmes on the same date — lower appears first."
         >
           {({ field, controlProps }) => (
             <Input {...field} {...controlProps} type="number" min={0} className="max-w-32" />
