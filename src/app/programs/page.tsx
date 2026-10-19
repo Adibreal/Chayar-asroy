@@ -11,7 +11,7 @@ export function generateMetadata() {
   return generateSiteMetadata({
     title: "Programs",
     description:
-      "Every programme Chayar Asroy has run — workshops, learning support and community events for children across Bangladesh.",
+      "Every programme Chayar Asroy has run, from art workshops to community celebrations, with children across Dhaka.",
     alternates: { canonical: "/programs" },
   });
 }

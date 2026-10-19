@@ -40,7 +40,7 @@ export function Header({ site }: { site: SiteContent }) {
       )}
     >
       <div className="container-page flex h-16 items-center justify-between gap-4 sm:h-20">
-        <Link href="/" aria-label={`${site.name} — home`} className={cn("rounded-md", focusRing)}>
+        <Link href="/" aria-label={`${site.name} home`} className={cn("rounded-md", focusRing)}>
           <Logo name={site.name} nameBn={site.nameBn} />
         </Link>
 

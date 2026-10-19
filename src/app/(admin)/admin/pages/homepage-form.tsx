@@ -125,20 +125,20 @@ export function HomepageForm({ page, heroUrl }: { page: Page | null; heroUrl?: s
           {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={4} />}
         </FormField>
 
-        <FormField name="missionPillarOneTitle" label="First card — title">
+        <FormField name="missionPillarOneTitle" label="First card title">
           {({ field, controlProps }) => (
             <Input {...field} {...controlProps} placeholder="Our mission" />
           )}
         </FormField>
-        <FormField name="missionPillarOneBody" label="First card — text">
+        <FormField name="missionPillarOneBody" label="First card text">
           {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={2} />}
         </FormField>
-        <FormField name="missionPillarTwoTitle" label="Second card — title">
+        <FormField name="missionPillarTwoTitle" label="Second card title">
           {({ field, controlProps }) => (
             <Input {...field} {...controlProps} placeholder="Our vision" />
           )}
         </FormField>
-        <FormField name="missionPillarTwoBody" label="Second card — text">
+        <FormField name="missionPillarTwoBody" label="Second card text">
           {({ field, controlProps }) => <Textarea {...field} {...controlProps} rows={2} />}
         </FormField>
       </FormSection>
@@ -195,7 +195,7 @@ export function HomepageForm({ page, heroUrl }: { page: Page | null; heroUrl?: s
         <FormField
           name="impactTitle"
           label="Headline"
-          description="Wrap a word in *asterisks* to show it in the brand italic — e.g. Small hands, *steady* work."
+          description="Wrap a word in *asterisks* to show it in the brand italic, for example: Small hands, *steady* work."
         >
           {({ field, controlProps }) => (
             <Input {...field} {...controlProps} placeholder="Small hands, *steady* work." />

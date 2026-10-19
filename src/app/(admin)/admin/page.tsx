@@ -109,7 +109,7 @@ export default async function AdminDashboardPage() {
           <QuickAction
             href="/admin/programs/new"
             label="Add a program"
-            description="Write up an event — it gets its own page on the site"
+            description="Write up an event and give it its own page on the site"
             icon={<Sparkles />}
           />
           <QuickAction

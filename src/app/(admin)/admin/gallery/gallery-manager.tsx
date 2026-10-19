@@ -156,7 +156,7 @@ export function GalleryManager({
 
                 {!item.consentVerified ? (
                   <p className="rounded-md bg-danger-soft px-2 py-1 text-caption text-danger">
-                    Guardian consent not verified — cannot be published.
+                    Guardian consent isn&apos;t verified yet, so this can&apos;t be published.
                   </p>
                 ) : null}
 
@@ -168,7 +168,7 @@ export function GalleryManager({
                     <ConfirmDialog
                       destructive
                       title="Remove from the gallery?"
-                      description="The image stays in the media library — only this gallery entry is removed."
+                      description="The image stays in the media library. Only this gallery entry is removed."
                       confirmLabel="Remove"
                       onConfirm={() => remove(item)}
                       trigger={
@@ -342,7 +342,7 @@ function EditGalleryItemPanel({
             >
               <option value="draft">Draft</option>
               <option value="published" disabled={!item.consentVerified}>
-                Published{item.consentVerified ? "" : " — needs guardian consent"}
+                Published{item.consentVerified ? "" : " (needs guardian consent)"}
               </option>
               <option value="archived">Archived</option>
             </select>

@@ -33,8 +33,8 @@ export default function AdminError({
         <div className="space-y-1.5">
           <h1 className="text-h5 font-semibold text-foreground">Something went wrong</h1>
           <p className="text-small text-muted-foreground">
-            The page couldn&apos;t be loaded. Try again — if it keeps happening, let a maintainer
-            know.
+            The page couldn&apos;t be loaded. Please try again, and if it keeps happening, let a
+            maintainer know.
           </p>
         </div>
 

@@ -127,7 +127,7 @@ export function MediaLibrary({
           description={
             search
               ? "Try a different search term."
-              : "Upload images using the box above — they'll be available to every editor."
+              : "Upload images using the box above. They'll be available to every editor."
           }
         />
       ) : (

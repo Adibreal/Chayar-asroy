@@ -301,7 +301,7 @@ export function ImpactColumns({
           </blockquote>
           {quoteAttribution ? (
             <figcaption className="text-caption font-semibold tracking-[0.12em] text-primary uppercase">
-              — {quoteAttribution}
+              {quoteAttribution}
             </figcaption>
           ) : null}
         </motion.figure>

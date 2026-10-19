@@ -79,7 +79,9 @@ export function StoriesTable({
       id: "author_name",
       header: "Author",
       className: "hidden md:table-cell",
-      cell: (story) => <span className="text-muted-foreground">{story.author_name ?? "—"}</span>,
+      cell: (story) => (
+        <span className="text-muted-foreground">{story.author_name ?? "Not set"}</span>
+      ),
     },
     {
       id: "published_at",
@@ -88,7 +90,7 @@ export function StoriesTable({
       className: "hidden lg:table-cell",
       cell: (story) => (
         <span className="text-muted-foreground">
-          {story.published_at ? new Date(story.published_at).toLocaleDateString() : "—"}
+          {story.published_at ? new Date(story.published_at).toLocaleDateString() : "Not yet"}
         </span>
       ),
     },

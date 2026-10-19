@@ -23,7 +23,7 @@ values (
   true,
   'Join us',
   'Be the reason a child believes in tomorrow.',
-  'Whether you give your time, your skills, or the supplies a child needs — every hand helps us reach further.'
+  'Whether you give your time, your skills or the supplies a child needs, every hand helps us reach further.'
 )
 on conflict (is_singleton) do nothing;
 
@@ -79,13 +79,13 @@ values (
   jsonb_build_object(
     'heroEyebrow', 'Student-led creativity & care',
     'heroTitle', 'Every child deserves a canvas.',
-    'heroDescription', 'Chayar Asroy supports underprivileged children across Bangladesh through creativity, learning, and community — not just donations, but human connection.',
+    'heroDescription', 'Through art workshops, celebrations and time spent together, Chayar Asroy gives children in underprivileged communities across Dhaka the space to create, learn and be heard.',
     'heroSecondaryCtaLabel', 'Explore our journey',
     'heroSecondaryCtaHref', '/our-journey',
 
     'missionEyebrow', 'About us',
     'missionTitle', 'We believe art changes lives.',
-    'missionDescription', 'Chayar Asroy started with a simple idea: creativity is not a luxury, it''s a lifeline. We work with children through art, learning, and community — building confidence, never dependency.',
+    'missionDescription', 'Chayar Asroy started with a simple idea: creativity is not a luxury, it''s a lifeline. We work with children through art, learning and community to build confidence, never dependency.',
     'missionPillarOneTitle', 'Our mission',
     'missionPillarOneBody', 'Give every child access to creative expression, education, and community support.',
     'missionPillarTwoTitle', 'Our vision',
@@ -132,7 +132,7 @@ insert into public.programs (
 values
   ('creative-workshops', 'Creative Workshops', 'art',
    'Helping children discover confidence through painting and imagination.',
-   E'A room, a stack of paper, and more colour than anyone knew what to do with.\n\nThe workshop began quietly. Within an hour it was the loudest room in the building — which is exactly what we hoped for.',
+   E'A room, a stack of paper, and more colour than anyone knew what to do with.\n\nThe workshop began quietly. Within an hour it was the loudest room in the building, which is exactly what we hoped for.',
    E'Children worked in small groups with a volunteer each, moving between painting, collage and free drawing.\n\nEvery child took their work home, and a few insisted on making a second one for a sibling.',
    '2026-03-14', 'Mirpur, Dhaka', '45 children, 8 volunteers',
    array[

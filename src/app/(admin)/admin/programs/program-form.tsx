@@ -181,9 +181,9 @@ export function ProgramForm({
               {...controlProps}
               className="h-11 w-full rounded-lg border border-input bg-surface px-3 text-body outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/35"
             >
-              <option value="draft">Draft — only visible here</option>
-              <option value="published">Published — live on the website</option>
-              <option value="archived">Archived — hidden, kept for reference</option>
+              <option value="draft">Draft (only visible here)</option>
+              <option value="published">Published (live on the website)</option>
+              <option value="archived">Archived (hidden, kept for reference)</option>
             </select>
           )}
         </FormField>
@@ -191,7 +191,7 @@ export function ProgramForm({
         <FormField
           name="orderIndex"
           label="Display order"
-          description="The website lists programmes newest first by date. This number only matters for programmes on the same date — lower appears first."
+          description="The website lists programmes newest first by date. This number only matters for programmes on the same date, where the lower number appears first."
         >
           {({ field, controlProps }) => (
             <Input {...field} {...controlProps} type="number" min={0} className="max-w-32" />

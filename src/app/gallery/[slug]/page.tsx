@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!event) return generateSiteMetadata();
 
   return generateSiteMetadata({
-    title: `${event.title} — Gallery`,
+    title: `Photos from ${event.title}`,
     description:
       event.summary ??
       `Photographs from ${event.title}${event.location ? ` in ${event.location}` : ""}.`,

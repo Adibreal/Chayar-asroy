@@ -50,7 +50,7 @@ export function StoryForm({ story, heroUrl }: { story?: Story; heroUrl?: string 
     >
       <FormSection
         title="Story"
-        description="Stories aren't shown on the public website yet — they will appear once the Stories page is built. Drafts are safe to write now."
+        description="Stories aren't shown on the public website yet. They will appear once the Stories page is built, so drafts are safe to write now."
       >
         <FormField name="title" label="Title" required>
           {({ field, controlProps }) => <Input {...field} {...controlProps} />}
@@ -109,9 +109,9 @@ export function StoryForm({ story, heroUrl }: { story?: Story; heroUrl?: string 
               {...controlProps}
               className="h-11 w-full rounded-lg border border-input bg-surface px-3 text-body outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/35"
             >
-              <option value="draft">Draft — only visible here</option>
-              <option value="published">Published — live on the website</option>
-              <option value="archived">Archived — hidden, kept for reference</option>
+              <option value="draft">Draft (only visible here)</option>
+              <option value="published">Published (live on the website)</option>
+              <option value="archived">Archived (hidden, kept for reference)</option>
             </select>
           )}
         </FormField>

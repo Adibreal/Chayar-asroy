@@ -97,7 +97,7 @@ export function ProgramsTable({
             Featured
           </span>
         ) : (
-          <span className="text-caption text-muted-foreground">—</span>
+          <span className="text-caption text-muted-foreground">No</span>
         ),
     },
     {

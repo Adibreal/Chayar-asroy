@@ -123,7 +123,7 @@ export function SettingsForm({
 
       <FormSection
         title="Current campaign"
-        description="Shown in the highlighted band near the foot of the homepage. The background photograph is heavily blurred under a dark wash, so warmth and colour matter far more than composition — leave it empty to use the brand placeholder."
+        description="Shown in the highlighted band near the foot of the homepage. The background photograph is heavily blurred under a dark wash, so warmth and colour matter far more than composition. Leave it empty to use the brand placeholder."
       >
         <FormField name="campaignEyebrow" label="Eyebrow">
           {({ field, controlProps }) => (

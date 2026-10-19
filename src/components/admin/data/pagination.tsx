@@ -34,7 +34,7 @@ export function TablePagination({
       <p className="text-caption text-muted-foreground" aria-live="polite">
         Showing{" "}
         <strong className="font-medium text-foreground">
-          {first}–{last}
+          {first} to {last}
         </strong>{" "}
         of <strong className="font-medium text-foreground">{total}</strong>
       </p>

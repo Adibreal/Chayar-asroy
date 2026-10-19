@@ -15,7 +15,8 @@ import { getSiteContent, type SiteContent } from "@/server/content/site";
  * deployment fact, not something an editor should be able to change.
  */
 export function buildMetadata(site: SiteContent, overrides: Metadata = {}): Metadata {
-  const titleBase = site.tagline ? `${site.name} — ${site.tagline}` : site.name;
+  // `·` matches the page-title template below; no dashes in visible copy (HANDOFF §5).
+  const titleBase = site.tagline ? `${site.name} · ${site.tagline}` : site.name;
   const title = site.seo.metaTitle ?? titleBase;
   const description = site.seo.metaDescription ?? site.description ?? undefined;
 

@@ -66,7 +66,7 @@ export default async function GalleryPage() {
               </Heading>
               <Text variant="lead" tone="muted">
                 {total > 0
-                  ? `${total} photographs from our workshops, celebrations and community events — the children, their artwork and the volunteers who show up for them.`
+                  ? `${total} photographs from our workshops, celebrations and community events, showing the children, their artwork and the volunteers who show up for them.`
                   : "Photographs from our workshops, celebrations and community events."}
               </Text>
             </Stack>
