@@ -144,10 +144,27 @@ in favour of `proxy`. See §9.
   The Stories editor now says stories aren't public yet and no longer
   promises Markdown.
 
+**Content, 19 October 2026**
+
+- **Art Workshop 4: ‘Ronger Golpo Recycling Workshop’** (28–29 August 2026,
+  Shishu Neer Bangladesh, Malibag) added with its 7 photographs
+  (`ronger-golpo-01…07.webp`). Text imported verbatim, as for the first four;
+  the source has no separate objectives, so it is overview + activities only.
+  Guardian consent for the photographs was confirmed by the organisation
+  before publishing. One correction at the organisation's request: volunteer
+  "Mahi khan" → "Mahi Khan".
+- Impact figures, as supplied by the organisation: Programs held 4 → **5**,
+  Children reached 80 → **113** (adds this workshop's 33 children).
+- **Programmes are now listed newest first by `event_date`** — on the
+  homepage, `/programs` and the CMS list. `order_index` only breaks ties
+  between programmes on the same date, so nobody renumbers anything when a
+  programme is added.
+- `event_date` is a single date, so a two-day event shows its first day.
+
 **Recommended next:** the homepage campaign band should use `gift-an-eid-03`
 (set in Site settings) — measured, it gives the band's text the best contrast
-of all 19 photos (5.86:1 desktop, 6.97:1 mobile) and is landscape, where the
-current portrait photo crops to a single face.
+of the original 19 photos (5.86:1 desktop, 6.97:1 mobile) and is landscape,
+where the current portrait photo crops to a single face.
 
 ---
 
@@ -258,7 +275,9 @@ child routes.
 
 The three-card homepage cap is `getPrograms({ featuredOnly: true, limit: 3 })`
 — enforced in code, so featuring a fourth programme in the CMS never changes
-that layout. `/programs` passes no limit.
+that layout. `/programs` passes no limit. Both are ordered **newest first by
+`event_date`** (since 19 October 2026), so the homepage always shows the three
+most recent featured programmes.
 
 A programme's gallery is `gallery_items.program_id` pointing at the **existing
 media library**: no second image store, and it inherits the child-safety consent
