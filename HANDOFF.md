@@ -311,6 +311,11 @@ Attach images in the Gallery editor by setting their _Programme_.
   Logistics, Media & Documentation.
 - **Voice:** warm, hopeful, dignity-first. Children are creators, never objects
   of pity.
+- **No long dashes (— or –) in anything a visitor or volunteer reads:** page
+  copy, CMS help text, titles and alt text. The organisation finds they make the
+  site read as AI-written (requested 19 October 2026). Use a comma, full stop,
+  colon or brackets instead, and write ranges with a hyphen ("ages 5-11"). Code
+  comments are exempt. All visible copy was cleared on that date.
 - **Logo:** official artwork at `public/branding/logo-trimmed.png`
   (900×442, cropped + downscaled from the supplied 1536×1024). The un-trimmed
   2.2 MB original is intentionally **not** in the repo.

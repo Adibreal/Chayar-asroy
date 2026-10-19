@@ -215,7 +215,9 @@ and is now reported (৳24,500 from 37 donations, on the impact ledger), but
 **how it is collected is undocumented** — never infer a channel in copy.
 Volunteer roles: Graphic Designer, Content Writer,
 Planning & Logistics, Media & Documentation. Voice: warm, hopeful,
-dignity-first; children are creators, never objects of pity. Logo:
+dignity-first; children are creators, never objects of pity. **No long dashes
+(— –) in any visible copy:** they read as AI-written to the organisation, so use
+commas, full stops, colons or brackets. Logo:
 `public/branding/logo-trimmed.png`.
 
 ## Immediate next steps
