@@ -33,7 +33,7 @@ Pins are deliberate: TypeScript **5.x**, ESLint **9.x** (not 7/10).
   volunteer, contact, cta, sections, media)
 - Public homepage (8 sections: hero · mission · featured programs · gallery
   preview · testimonials · impact · how-to-help · campaign CTA)
-- SEO surface: `generateSiteMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`
+- SEO surface: `generateSiteMetadata()`, `robots.ts`, `sitemap.ts`, site icons
 - Backend platform: schema, RLS, storage, auth, repositories, actions,
   middleware session gate
 - CMS framework + 6 editors: Homepage, Programs, Stories, Gallery, Media
@@ -88,7 +88,7 @@ the largest gap, and it is words from the organisation rather than code.
 ```
 src/app/  page.tsx (home) · programs/ (archive + [slug]) · gallery/ (events + [slug])
           layout.tsx · not-found.tsx
-          globals.css · icon.svg · robots.ts · sitemap.ts
+          globals.css · favicon.ico · icon.png · robots.ts · sitemap.ts
           (admin)/admin/* (protected, force-dynamic)
           (auth)/admin/login (separate group — required) · (dev)/showcase
 src/middleware.ts   session refresh + coarse /admin auth gate

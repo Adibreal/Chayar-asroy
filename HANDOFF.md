@@ -31,7 +31,7 @@ solutions over clever ones.
 | ---------------------------- | ------------------------------------------------------------------- |
 | Public homepage              | ✅ 8 sections, entirely CMS-driven                                  |
 | Design system                | ✅ Complete + documented                                            |
-| SEO surface                  | ✅ `generateSiteMetadata()`, `robots.ts`, `sitemap.ts`, `icon.svg`  |
+| SEO surface                  | ✅ `generateSiteMetadata()`, `robots.ts`, `sitemap.ts`, site icons  |
 | Backend platform (Supabase)  | ✅ Provisioned, migrations `0001`–`0012`, validated live            |
 | CMS framework + 6 editors    | ✅ Validated end-to-end in the browser                              |
 | Public site reading from CMS | ✅ Phase 5D — homepage, shell and programmes                        |
@@ -94,9 +94,25 @@ in favour of `proxy`. See §9.
 
 - **Live at https://chayarasroy.org** (registered at Porkbun; DNS `A @ →
 216.198.79.1`, HTTPS issued by Vercel). The Vercel URL
-  `chayar-asroy-cdqm.vercel.app` still works. **`www.chayarasroy.org` is not
-  configured yet** — add it in Vercel (redirect to the apex) plus its CNAME in
-  Porkbun.
+  `chayar-asroy-cdqm.vercel.app` still works. **`www.chayarasroy.org` works
+  too** (since 24 October 2026): Porkbun `CNAME www → cname.vercel-dns.com`, and
+  in Vercel both domains are set to **Production**, serving the site directly.
+  Every page declares `https://chayarasroy.org` as canonical, so this is not
+  duplicate content.
+- ⚠ **Never set `chayarasroy.org` to redirect in Vercel.** Adding `www` made
+  Vercel default the apex to "308 → www" before `www` had DNS, which took the
+  site down for everyone until it was set back to Production. Browsers that
+  saw that 308 cached it, which is why `www` must keep serving the site rather
+  than redirect back to the apex (that would loop for them).
+- **Google Search Console** is verified for the whole domain (DNS TXT record
+  `google-site-verification=…` in Porkbun, 24 October 2026). Submit
+  `https://chayarasroy.org/sitemap.xml` there and use URL inspection to ask
+  for a re-crawl after big changes.
+- **Site icons** are the tree from the official logo, cut out of
+  `public/branding/logo-trimmed.png` pixel for pixel: `src/app/favicon.ico`
+  (16/32/48), `icon.png` (192, on cream) and `apple-icon.png` (180, opaque).
+  They replaced the hand-drawn `icon.svg`, because Google ignored the SVG-only
+  favicon and showed a generic globe.
 - Vercel env: `NEXT_PUBLIC_SITE_URL=https://chayarasroy.org` (type **Config**,
   no trailing slash — it is baked in at build, so changing it needs a
   redeploy), plus the two public Supabase values. `SUPABASE_SERVICE_ROLE_KEY`
@@ -199,7 +215,7 @@ src/
 │   ├── gallery/              page.tsx (events) · [slug]/page.tsx (one event)
 │   ├── not-found.tsx         public 404
 │   ├── globals.css           the three token layers live here
-│   ├── icon.svg              favicon (hand-authored tree mark)
+│   ├── favicon.ico icon.png apple-icon.png   site icons: the logo's tree, cut from logo-trimmed.png
 │   ├── robots.ts sitemap.ts  generated SEO endpoints
 │   ├── (admin)/admin/        protected CMS (force-dynamic)
 │   ├── (auth)/admin/login/   login — SEPARATE group on purpose (see §6)
