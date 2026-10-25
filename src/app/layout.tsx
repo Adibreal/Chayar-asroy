@@ -51,8 +51,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const site = await getSiteContent();
 
   return (
+    /*
+     * `data-scroll-behavior="smooth"` tells Next.js that `globals.css` sets
+     * `scroll-behavior: smooth`, so it switches smoothing off while it scrolls
+     * during a navigation. Without it (Next 16 no longer does this by default)
+     * the "Support our work" link to `/#how-to-help` changed the URL but the
+     * page barely moved: two smooth scrolls interrupted each other.
+     */
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={cn(inter.variable, playfair.variable, notoBengali.variable)}
       suppressHydrationWarning
     >
