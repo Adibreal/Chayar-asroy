@@ -765,6 +765,16 @@ link (`nullableIdSchema`), send `""` — never `|| undefined` — for emptied te
 and update actions pass the raw input to `toRowPayload(values, submitted)`, which
 turns a submitted-but-empty field into `null`.
 
+**Next 16 and `scroll-behavior: smooth` break in-page links.** `globals.css`
+sets smooth scrolling on `<html>`, and Next 16 no longer switches it off when it
+scrolls during a navigation. The result: "Support our work" (`/#how-to-help`)
+changed the URL but the page barely moved. Two fixes, both needed:
+`data-scroll-behavior="smooth"` on `<html>` (Next then scrolls instantly on
+route changes, so links from other pages land on the anchor), and `PrimaryCta`
+scrolling same-page anchors itself instead of letting the router try, because
+Next keeps smoothing on for hash-only changes. Test any new in-page link on
+the homepage, from another page and from the mobile menu.
+
 **`revalidatePath(path)` refreshes exactly that path.** It does not reach the
 `[slug]` pages beneath it — that needs `'layout'` or the dynamic pattern. Don't
 hand-pick paths after a content write; call `revalidatePublicSite()`.
